@@ -1,10 +1,11 @@
 import { create } from "zustand";
 
-export type Difficulty = "easy" | "moderate" | "hard";
+export type Difficulty = "very-easy" | "easy" | "moderate" | "hard" | "very-hard" | "custom";
 
 export interface SubjectConfig {
   name: string;
   difficulty: Difficulty;
+  customDuration?: number; // only used when difficulty is "custom"
   topics: string[];
 }
 
@@ -50,17 +51,32 @@ export interface StudySession {
 }
 
 // Duration in minutes based on difficulty
-const DIFFICULTY_DURATION: Record<Difficulty, number> = {
-  easy: 20,
+const DIFFICULTY_DURATION: Record<Exclude<Difficulty, "custom">, number> = {
+  "very-easy": 15,
+  easy: 25,
   moderate: 40,
-  hard: 60,
+  hard: 55,
+  "very-hard": 75,
 };
 
-const DIFFICULTY_PRIORITY: Record<Difficulty, StudyTask["priority"]> = {
+const DIFFICULTY_PRIORITY: Record<Exclude<Difficulty, "custom">, StudyTask["priority"]> = {
+  "very-easy": "low",
   easy: "low",
   moderate: "medium",
   hard: "high",
+  "very-hard": "high",
 };
+
+export function getDurationForDifficulty(difficulty: Difficulty, customDuration?: number): number {
+  if (difficulty === "custom" && customDuration) return customDuration;
+  if (difficulty === "custom") return 30;
+  return DIFFICULTY_DURATION[difficulty];
+}
+
+export function getPriorityForDifficulty(difficulty: Difficulty): StudyTask["priority"] {
+  if (difficulty === "custom") return "medium";
+  return DIFFICULTY_PRIORITY[difficulty];
+}
 
 interface StudyStore {
   tasks: StudyTask[];
@@ -85,7 +101,7 @@ interface StudyStore {
   addFreeTimeSlot: (slot: FreeTimeSlot) => void;
   removeFreeTimeSlot: (day: string) => void;
 
-  autoGenerateTasks: (startDate: string, days: number) => void;
+  autoGenerateTasks: (startDate: string, days: number, customConfigs?: SubjectConfig[]) => void;
 }
 
 const defaultSubjectConfigs: SubjectConfig[] = [
@@ -216,18 +232,18 @@ export const useStudyStore = create<StudyStore>((set, get) => ({
       freeTimeSlots: state.freeTimeSlots.filter((s) => s.day !== day),
     })),
 
-  autoGenerateTasks: (startDate: string, days: number) => {
+  autoGenerateTasks: (startDate: string, days: number, customConfigs?: SubjectConfig[]) => {
     const { subjectConfigs, freeTimeSlots } = get();
+    const configs = customConfigs || subjectConfigs;
     const newTasks: StudyTask[] = [];
 
     // Build a round-robin queue of all topics with their subject config
-    const topicQueue: { subject: string; topic: string; difficulty: Difficulty }[] = [];
-    // Interleave subjects so schedule is varied
-    const maxTopics = Math.max(...subjectConfigs.map((s) => s.topics.length));
+    const topicQueue: { subject: string; topic: string; difficulty: Difficulty; customDuration?: number }[] = [];
+    const maxTopics = Math.max(...configs.map((s) => s.topics.length));
     for (let i = 0; i < maxTopics; i++) {
-      for (const sc of subjectConfigs) {
+      for (const sc of configs) {
         if (i < sc.topics.length) {
-          topicQueue.push({ subject: sc.name, topic: sc.topics[i], difficulty: sc.difficulty });
+          topicQueue.push({ subject: sc.name, topic: sc.topics[i], difficulty: sc.difficulty, customDuration: sc.customDuration });
         }
       }
     }
@@ -246,11 +262,11 @@ export const useStudyStore = create<StudyStore>((set, get) => ({
       let currentTime = slot.startTime;
       const availableMinutes = slotMinutes(slot);
       let usedMinutes = 0;
-      const GAP = 5; // 5 min gap between tasks
+      const GAP = 5;
 
       while (topicIndex < topicQueue.length) {
         const item = topicQueue[topicIndex];
-        const duration = DIFFICULTY_DURATION[item.difficulty];
+        const duration = getDurationForDifficulty(item.difficulty, item.customDuration);
 
         if (usedMinutes + duration > availableMinutes) break;
 
@@ -262,7 +278,7 @@ export const useStudyStore = create<StudyStore>((set, get) => ({
           timeSlot: currentTime,
           duration,
           status: "pending",
-          priority: DIFFICULTY_PRIORITY[item.difficulty],
+          priority: getPriorityForDifficulty(item.difficulty),
         });
 
         currentTime = addMinutesToTime(currentTime, duration + GAP);

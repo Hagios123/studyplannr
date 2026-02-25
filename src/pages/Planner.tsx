@@ -1,6 +1,6 @@
 import { useState } from "react";
-import { useStudyStore, StudyTask, Difficulty } from "@/stores/useStudyStore";
-import { Check, X, Plus, CalendarDays, Sparkles, Settings2, Pencil, Trash2, Clock, BookOpen } from "lucide-react";
+import { useStudyStore, StudyTask, Difficulty, SubjectConfig, getDurationForDifficulty } from "@/stores/useStudyStore";
+import { Check, X, Plus, CalendarDays, Sparkles, Settings2, Pencil, Trash2, Clock, BookOpen, GraduationCap } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
@@ -26,11 +26,35 @@ function getWeekDates(referenceDate: Date) {
   });
 }
 
-const DIFFICULTY_LABELS: Record<Difficulty, { label: string; color: string; duration: string }> = {
-  easy: { label: "Easy", color: "bg-success/10 text-success", duration: "~20 min" },
-  moderate: { label: "Moderate", color: "bg-accent/10 text-accent", duration: "~40 min" },
-  hard: { label: "Hard", color: "bg-destructive/10 text-destructive", duration: "~60 min" },
-};
+const DIFFICULTY_OPTIONS: { value: Difficulty; label: string; duration: string; color: string }[] = [
+  { value: "very-easy", label: "Very Easy", duration: "~15 min", color: "bg-success/20 text-success" },
+  { value: "easy", label: "Easy", duration: "~25 min", color: "bg-success/10 text-success" },
+  { value: "moderate", label: "Moderate", duration: "~40 min", color: "bg-accent/10 text-accent" },
+  { value: "hard", label: "Hard", duration: "~55 min", color: "bg-destructive/10 text-destructive" },
+  { value: "very-hard", label: "Very Hard", duration: "~75 min", color: "bg-destructive/20 text-destructive" },
+  { value: "custom", label: "Custom", duration: "your time", color: "bg-primary/10 text-primary" },
+];
+
+function getDifficultyColor(d: Difficulty) {
+  return DIFFICULTY_OPTIONS.find((o) => o.value === d)?.color ?? "bg-muted text-muted-foreground";
+}
+
+function getDifficultyLabel(d: Difficulty) {
+  return DIFFICULTY_OPTIONS.find((o) => o.value === d)?.label ?? d;
+}
+
+// A single subject entry in the generate form
+interface GenSubject {
+  id: string;
+  name: string;
+  difficulty: Difficulty;
+  customDuration: number;
+  topics: string; // comma-separated
+}
+
+function emptyGenSubject(): GenSubject {
+  return { id: `gs-${Date.now()}-${Math.random()}`, name: "", difficulty: "moderate", customDuration: 30, topics: "" };
+}
 
 export default function Planner() {
   const {
@@ -49,7 +73,7 @@ export default function Planner() {
 
   // Add task form
   const [newTopic, setNewTopic] = useState("");
-  const [newSubject, setNewSubject] = useState(subjects[0]);
+  const [newSubject, setNewSubject] = useState(subjects[0] || "");
   const [newTime, setNewTime] = useState("18:00");
   const [newDuration, setNewDuration] = useState("45");
   const [newPriority, setNewPriority] = useState<StudyTask["priority"]>("medium");
@@ -57,9 +81,13 @@ export default function Planner() {
   // Generate form
   const [genStartDate, setGenStartDate] = useState<Date>(new Date());
   const [genDays, setGenDays] = useState("7");
+  const [genCustomDays, setGenCustomDays] = useState("");
+  const [genSubjects, setGenSubjects] = useState<GenSubject[]>([emptyGenSubject()]);
 
   const dates = getWeekDates(new Date(selectedDate + "T12:00:00"));
   const dayTasks = tasks.filter((t) => t.date === selectedDate).sort((a, b) => a.timeSlot.localeCompare(b.timeSlot));
+
+  const actualGenDays = genDays === "custom" ? parseInt(genCustomDays) || 1 : parseInt(genDays);
 
   const handleAdd = () => {
     if (!newTopic) return;
@@ -92,13 +120,34 @@ export default function Planner() {
   };
 
   const handleGenerate = () => {
+    const validSubjects = genSubjects.filter((s) => s.name.trim() && s.topics.trim());
+    if (validSubjects.length === 0) {
+      toast({ title: "Add at least one subject with topics", variant: "destructive" });
+      return;
+    }
+
+    const configs: SubjectConfig[] = validSubjects.map((s) => ({
+      name: s.name.trim(),
+      difficulty: s.difficulty,
+      customDuration: s.difficulty === "custom" ? s.customDuration : undefined,
+      topics: s.topics.split(",").map((t) => t.trim()).filter(Boolean),
+    }));
+
     const dateStr = genStartDate.toISOString().split("T")[0];
-    autoGenerateTasks(dateStr, parseInt(genDays));
+    autoGenerateTasks(dateStr, actualGenDays, configs);
     setGenerateOpen(false);
     toast({
       title: "Schedule generated!",
-      description: `Tasks auto-created for ${genDays} days starting ${format(genStartDate, "MMM d")}`,
+      description: `Tasks created for ${actualGenDays} days starting ${format(genStartDate, "MMM d")}`,
     });
+  };
+
+  const updateGenSubject = (id: string, updates: Partial<GenSubject>) => {
+    setGenSubjects((prev) => prev.map((s) => (s.id === id ? { ...s, ...updates } : s)));
+  };
+
+  const removeGenSubject = (id: string) => {
+    setGenSubjects((prev) => prev.filter((s) => s.id !== id));
   };
 
   return (
@@ -126,7 +175,7 @@ export default function Planner() {
                 </TabsList>
 
                 <TabsContent value="subjects" className="space-y-3 mt-4">
-                  <p className="text-xs text-muted-foreground">Set difficulty per subject. This controls auto-generated task durations: Easy (~20 min), Moderate (~40 min), Hard (~60 min).</p>
+                  <p className="text-xs text-muted-foreground">Set default difficulty per subject for quick scheduling.</p>
                   {subjectConfigs.map((sc) => (
                     <div key={sc.name} className="flex items-center gap-3 p-3 rounded-lg bg-secondary/50 border border-border">
                       <BookOpen className="w-4 h-4 text-muted-foreground shrink-0" />
@@ -135,17 +184,12 @@ export default function Planner() {
                         value={sc.difficulty}
                         onValueChange={(val) => updateSubjectConfig(sc.name, { difficulty: val as Difficulty })}
                       >
-                        <SelectTrigger className="w-[130px]">
+                        <SelectTrigger className="w-[140px]">
                           <SelectValue />
                         </SelectTrigger>
                         <SelectContent>
-                          {(["easy", "moderate", "hard"] as Difficulty[]).map((d) => (
-                            <SelectItem key={d} value={d}>
-                              <span className="flex items-center gap-2">
-                                {DIFFICULTY_LABELS[d].label}
-                                <span className="text-xs text-muted-foreground">{DIFFICULTY_LABELS[d].duration}</span>
-                              </span>
-                            </SelectItem>
+                          {DIFFICULTY_OPTIONS.map((d) => (
+                            <SelectItem key={d.value} value={d.value}>{d.label} ({d.duration})</SelectItem>
                           ))}
                         </SelectContent>
                       </Select>
@@ -154,7 +198,7 @@ export default function Planner() {
                 </TabsContent>
 
                 <TabsContent value="time" className="space-y-3 mt-4">
-                  <p className="text-xs text-muted-foreground">Define when you're free to study each day. The AI scheduler will fit tasks into these windows.</p>
+                  <p className="text-xs text-muted-foreground">Define when you're free to study each day.</p>
                   {["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"].map((day) => {
                     const slot = freeTimeSlots.find((s) => s.day === day);
                     return (
@@ -162,22 +206,10 @@ export default function Planner() {
                         <span className="w-24 text-sm font-medium">{day.slice(0, 3)}</span>
                         {slot ? (
                           <>
-                            <Input
-                              type="time"
-                              value={slot.startTime}
-                              onChange={(e) => addFreeTimeSlot({ ...slot, startTime: e.target.value })}
-                              className="w-28"
-                            />
+                            <Input type="time" value={slot.startTime} onChange={(e) => addFreeTimeSlot({ ...slot, startTime: e.target.value })} className="w-28" />
                             <span className="text-muted-foreground text-xs">to</span>
-                            <Input
-                              type="time"
-                              value={slot.endTime}
-                              onChange={(e) => addFreeTimeSlot({ ...slot, endTime: e.target.value })}
-                              className="w-28"
-                            />
-                            <Button variant="ghost" size="icon" className="shrink-0" onClick={() => removeFreeTimeSlot(day)}>
-                              <X className="w-3 h-3" />
-                            </Button>
+                            <Input type="time" value={slot.endTime} onChange={(e) => addFreeTimeSlot({ ...slot, endTime: e.target.value })} className="w-28" />
+                            <Button variant="ghost" size="icon" className="shrink-0" onClick={() => removeFreeTimeSlot(day)}><X className="w-3 h-3" /></Button>
                           </>
                         ) : (
                           <Button variant="outline" size="sm" onClick={() => addFreeTimeSlot({ day, startTime: "18:00", endTime: "21:00" })}>
@@ -195,60 +227,153 @@ export default function Planner() {
           {/* Auto Generate */}
           <Dialog open={generateOpen} onOpenChange={setGenerateOpen}>
             <DialogTrigger asChild>
-              <Button variant="outline" className="gap-2">
-                <Sparkles className="w-4 h-4" /> Auto Generate
-              </Button>
+              <Button variant="outline" className="gap-2"><Sparkles className="w-4 h-4" /> Auto Generate</Button>
             </DialogTrigger>
-            <DialogContent>
-              <DialogHeader><DialogTitle className="flex items-center gap-2"><Sparkles className="w-5 h-5 text-accent" /> Smart Schedule Generator</DialogTitle></DialogHeader>
-              <div className="space-y-4 pt-2">
+            <DialogContent className="max-w-2xl max-h-[85vh] overflow-y-auto">
+              <DialogHeader>
+                <DialogTitle className="flex items-center gap-2">
+                  <Sparkles className="w-5 h-5 text-accent" /> Smart Schedule Generator
+                </DialogTitle>
+              </DialogHeader>
+              <div className="space-y-5 pt-2">
                 <p className="text-sm text-muted-foreground">
-                  Automatically creates study tasks based on your subjects, their difficulty levels, and your available free time.
-                  Complex subjects get longer sessions, easy ones are shorter.
+                  Add your subjects, set their complexity level (or define a custom duration), list topics, and the AI will schedule everything into your free time.
                 </p>
-                <div className="grid grid-cols-3 gap-2">
-                  {subjectConfigs.map((sc) => (
-                    <div key={sc.name} className={`text-center p-2 rounded-lg border border-border ${DIFFICULTY_LABELS[sc.difficulty].color}`}>
-                      <p className="text-xs font-medium">{sc.name}</p>
-                      <p className="text-[10px] opacity-70">{DIFFICULTY_LABELS[sc.difficulty].duration}/session</p>
+
+                {/* Subjects list */}
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between">
+                    <label className="text-sm font-semibold flex items-center gap-2">
+                      <GraduationCap className="w-4 h-4 text-primary" /> Subjects
+                    </label>
+                    <Button variant="outline" size="sm" onClick={() => setGenSubjects([...genSubjects, emptyGenSubject()])}>
+                      <Plus className="w-3 h-3 mr-1" /> Add Subject
+                    </Button>
+                  </div>
+
+                  {genSubjects.map((gs, idx) => (
+                    <div key={gs.id} className="p-4 rounded-xl border border-border bg-secondary/30 space-y-3">
+                      <div className="flex items-center gap-2">
+                        <span className="text-xs font-bold text-muted-foreground w-5">{idx + 1}.</span>
+                        <Input
+                          placeholder="Subject name (e.g. Mathematics)"
+                          value={gs.name}
+                          onChange={(e) => updateGenSubject(gs.id, { name: e.target.value })}
+                          className="flex-1"
+                        />
+                        {genSubjects.length > 1 && (
+                          <Button variant="ghost" size="icon" className="shrink-0 text-muted-foreground hover:text-destructive" onClick={() => removeGenSubject(gs.id)}>
+                            <Trash2 className="w-3.5 h-3.5" />
+                          </Button>
+                        )}
+                      </div>
+
+                      <div className="flex items-center gap-2">
+                        <Select value={gs.difficulty} onValueChange={(v) => updateGenSubject(gs.id, { difficulty: v as Difficulty })}>
+                          <SelectTrigger className="w-[160px]">
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {DIFFICULTY_OPTIONS.map((d) => (
+                              <SelectItem key={d.value} value={d.value}>
+                                <span className="flex items-center gap-2">
+                                  {d.label}
+                                  <span className="text-[10px] text-muted-foreground">{d.duration}</span>
+                                </span>
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+
+                        {gs.difficulty === "custom" && (
+                          <div className="flex items-center gap-1.5">
+                            <Input
+                              type="number"
+                              value={gs.customDuration}
+                              onChange={(e) => updateGenSubject(gs.id, { customDuration: parseInt(e.target.value) || 1 })}
+                              className="w-20"
+                              min={5}
+                              max={180}
+                            />
+                            <span className="text-xs text-muted-foreground">min</span>
+                          </div>
+                        )}
+
+                        <div className={`ml-auto text-xs px-2 py-1 rounded-full ${getDifficultyColor(gs.difficulty)}`}>
+                          {gs.difficulty === "custom"
+                            ? `${gs.customDuration} min/session`
+                            : `${getDurationForDifficulty(gs.difficulty)} min/session`}
+                        </div>
+                      </div>
+
+                      <Input
+                        placeholder="Topics (comma-separated, e.g. Linear Algebra, Calculus, Probability)"
+                        value={gs.topics}
+                        onChange={(e) => updateGenSubject(gs.id, { topics: e.target.value })}
+                      />
                     </div>
                   ))}
                 </div>
 
-                <div className="space-y-2">
-                  <label className="text-sm font-medium">Start date</label>
-                  <Popover>
-                    <PopoverTrigger asChild>
-                      <Button variant="outline" className={cn("w-full justify-start text-left font-normal")}>
-                        <CalendarIcon className="mr-2 h-4 w-4" />
-                        {format(genStartDate, "PPP")}
-                      </Button>
-                    </PopoverTrigger>
-                    <PopoverContent className="w-auto p-0" align="start">
-                      <Calendar
-                        mode="single"
-                        selected={genStartDate}
-                        onSelect={(d) => d && setGenStartDate(d)}
-                        initialFocus
-                        className={cn("p-3 pointer-events-auto")}
+                {/* Schedule params */}
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium">Start date</label>
+                    <Popover>
+                      <PopoverTrigger asChild>
+                        <Button variant="outline" className={cn("w-full justify-start text-left font-normal")}>
+                          <CalendarIcon className="mr-2 h-4 w-4" />
+                          {format(genStartDate, "PPP")}
+                        </Button>
+                      </PopoverTrigger>
+                      <PopoverContent className="w-auto p-0" align="start">
+                        <Calendar
+                          mode="single"
+                          selected={genStartDate}
+                          onSelect={(d) => d && setGenStartDate(d)}
+                          initialFocus
+                          className={cn("p-3 pointer-events-auto")}
+                        />
+                      </PopoverContent>
+                    </Popover>
+                  </div>
+
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium">Number of days</label>
+                    <Select value={genDays} onValueChange={setGenDays}>
+                      <SelectTrigger><SelectValue /></SelectTrigger>
+                      <SelectContent>
+                        {["3", "5", "7", "14", "21", "30"].map((n) => (
+                          <SelectItem key={n} value={n}>{n} days</SelectItem>
+                        ))}
+                        <SelectItem value="custom">Custom...</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    {genDays === "custom" && (
+                      <Input
+                        type="number"
+                        placeholder="Enter number of days"
+                        value={genCustomDays}
+                        onChange={(e) => setGenCustomDays(e.target.value)}
+                        min={1}
+                        max={365}
+                        className="mt-2"
                       />
-                    </PopoverContent>
-                  </Popover>
+                    )}
+                  </div>
                 </div>
 
-                <div className="space-y-2">
-                  <label className="text-sm font-medium">Number of days</label>
-                  <Select value={genDays} onValueChange={setGenDays}>
-                    <SelectTrigger><SelectValue /></SelectTrigger>
-                    <SelectContent>
-                      {["3", "5", "7", "14", "21", "30"].map((n) => (
-                        <SelectItem key={n} value={n}>{n} days</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                {/* Summary */}
+                <div className="p-3 rounded-lg bg-primary/5 border border-primary/20 text-sm">
+                  <p className="font-medium text-primary mb-1">Generation preview</p>
+                  <p className="text-muted-foreground text-xs">
+                    {genSubjects.filter((s) => s.name.trim()).length} subject(s) ·{" "}
+                    {genSubjects.reduce((acc, s) => acc + s.topics.split(",").filter((t) => t.trim()).length, 0)} topic(s) ·{" "}
+                    {actualGenDays} day(s) starting {format(genStartDate, "MMM d")}
+                  </p>
                 </div>
 
-                <Button onClick={handleGenerate} className="w-full gap-2">
+                <Button onClick={handleGenerate} className="w-full gap-2" size="lg">
                   <Sparkles className="w-4 h-4" /> Generate Schedule
                 </Button>
               </div>
@@ -325,7 +450,6 @@ export default function Planner() {
               "bg-card border-border"
             }`}
           >
-            {/* Time indicator */}
             <div className="flex flex-col items-center shrink-0 w-14">
               <Clock className="w-3.5 h-3.5 text-muted-foreground mb-1" />
               <span className="text-sm font-medium tabular-nums">{task.timeSlot}</span>
@@ -349,35 +473,16 @@ export default function Planner() {
             <div className="flex gap-1.5">
               {task.status === "pending" && (
                 <>
-                  <button
-                    onClick={() => setEditingTask({ ...task })}
-                    className="w-8 h-8 rounded-lg bg-secondary text-muted-foreground hover:text-foreground flex items-center justify-center transition-colors"
-                    title="Edit"
-                  >
+                  <button onClick={() => setEditingTask({ ...task })} className="w-8 h-8 rounded-lg bg-secondary text-muted-foreground hover:text-foreground flex items-center justify-center transition-colors" title="Edit">
                     <Pencil className="w-3.5 h-3.5" />
                   </button>
-                  <button
-                    onClick={() => {
-                      deleteTask(task.id);
-                      toast({ title: "Task deleted" });
-                    }}
-                    className="w-8 h-8 rounded-lg bg-secondary text-muted-foreground hover:text-destructive flex items-center justify-center transition-colors"
-                    title="Delete"
-                  >
+                  <button onClick={() => { deleteTask(task.id); toast({ title: "Task deleted" }); }} className="w-8 h-8 rounded-lg bg-secondary text-muted-foreground hover:text-destructive flex items-center justify-center transition-colors" title="Delete">
                     <Trash2 className="w-3.5 h-3.5" />
                   </button>
-                  <button
-                    onClick={() => updateTaskStatus(task.id, "completed")}
-                    className="w-8 h-8 rounded-lg bg-success/10 text-success hover:bg-success/20 flex items-center justify-center transition-colors"
-                    title="Complete"
-                  >
+                  <button onClick={() => updateTaskStatus(task.id, "completed")} className="w-8 h-8 rounded-lg bg-success/10 text-success hover:bg-success/20 flex items-center justify-center transition-colors" title="Complete">
                     <Check className="w-3.5 h-3.5" />
                   </button>
-                  <button
-                    onClick={() => updateTaskStatus(task.id, "skipped")}
-                    className="w-8 h-8 rounded-lg bg-destructive/10 text-destructive hover:bg-destructive/20 flex items-center justify-center transition-colors"
-                    title="Skip"
-                  >
+                  <button onClick={() => updateTaskStatus(task.id, "skipped")} className="w-8 h-8 rounded-lg bg-destructive/10 text-destructive hover:bg-destructive/20 flex items-center justify-center transition-colors" title="Skip">
                     <X className="w-3.5 h-3.5" />
                   </button>
                 </>
@@ -399,27 +504,12 @@ export default function Planner() {
                   {subjects.map((s) => <SelectItem key={s} value={s}>{s}</SelectItem>)}
                 </SelectContent>
               </Select>
-              <Input
-                placeholder="Topic name..."
-                value={editingTask.topic}
-                onChange={(e) => setEditingTask({ ...editingTask, topic: e.target.value })}
-              />
+              <Input placeholder="Topic name..." value={editingTask.topic} onChange={(e) => setEditingTask({ ...editingTask, topic: e.target.value })} />
               <div className="grid grid-cols-2 gap-3">
-                <Input
-                  type="time"
-                  value={editingTask.timeSlot}
-                  onChange={(e) => setEditingTask({ ...editingTask, timeSlot: e.target.value })}
-                />
-                <Input
-                  type="number"
-                  value={editingTask.duration}
-                  onChange={(e) => setEditingTask({ ...editingTask, duration: parseInt(e.target.value) || 0 })}
-                />
+                <Input type="time" value={editingTask.timeSlot} onChange={(e) => setEditingTask({ ...editingTask, timeSlot: e.target.value })} />
+                <Input type="number" value={editingTask.duration} onChange={(e) => setEditingTask({ ...editingTask, duration: parseInt(e.target.value) || 0 })} />
               </div>
-              <Select
-                value={editingTask.priority}
-                onValueChange={(v) => setEditingTask({ ...editingTask, priority: v as StudyTask["priority"] })}
-              >
+              <Select value={editingTask.priority} onValueChange={(v) => setEditingTask({ ...editingTask, priority: v as StudyTask["priority"] })}>
                 <SelectTrigger><SelectValue /></SelectTrigger>
                 <SelectContent>
                   <SelectItem value="low">Low</SelectItem>
