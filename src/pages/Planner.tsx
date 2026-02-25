@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { SyllabusUpload } from "@/components/SyllabusUpload";
 import { useStudyStore, StudyTask, Difficulty, SubjectConfig, getDurationForDifficulty } from "@/stores/useStudyStore";
 import { Check, X, Plus, CalendarDays, Sparkles, Settings2, Pencil, Trash2, Clock, BookOpen, GraduationCap } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -237,10 +238,22 @@ export default function Planner() {
               </DialogHeader>
               <div className="space-y-5 pt-2">
                 <p className="text-sm text-muted-foreground">
-                  Add your subjects, set their complexity level (or define a custom duration), list topics, and the AI will schedule everything into your free time.
+                  Add your subjects manually, or upload a syllabus PDF to auto-extract topics.
                 </p>
 
-                {/* Subjects list */}
+                {/* Syllabus Upload */}
+                <SyllabusUpload
+                  onExtracted={(subjects) => {
+                    const newSubs: GenSubject[] = subjects.map((s) => ({
+                      id: `gs-${Date.now()}-${Math.random()}`,
+                      name: s.name,
+                      difficulty: s.difficulty || "moderate",
+                      customDuration: 30,
+                      topics: s.topics.join(", "),
+                    }));
+                    setGenSubjects(newSubs.length > 0 ? newSubs : [emptyGenSubject()]);
+                  }}
+                />
                 <div className="space-y-3">
                   <div className="flex items-center justify-between">
                     <label className="text-sm font-semibold flex items-center gap-2">
