@@ -4,6 +4,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AppLayout } from "@/components/layout/AppLayout";
+import { StudyNotificationProvider } from "@/components/StudyNotificationProvider";
 import Index from "./pages/Index";
 import Planner from "./pages/Planner";
 import FocusTimer from "./pages/FocusTimer";
@@ -21,18 +22,20 @@ const App = () => (
       <Toaster />
       <Sonner />
       <BrowserRouter>
-        <AppLayout>
-          <Routes>
-            <Route path="/" element={<Index />} />
-            <Route path="/planner" element={<Planner />} />
-            <Route path="/timer" element={<FocusTimer />} />
-            <Route path="/flashcards" element={<Flashcards />} />
-            <Route path="/quiz" element={<Quiz />} />
-            <Route path="/tutor" element={<Tutor />} />
-            <Route path="/analytics" element={<Analytics />} />
-            <Route path="*" element={<NotFound />} />
-          </Routes>
-        </AppLayout>
+        <StudyNotificationProvider>
+          <AppLayout>
+            <Routes>
+              <Route path="/" element={<Index />} />
+              <Route path="/planner" element={<Planner />} />
+              <Route path="/timer" element={<FocusTimer />} />
+              <Route path="/flashcards" element={<Flashcards />} />
+              <Route path="/quiz" element={<Quiz />} />
+              <Route path="/tutor" element={<Tutor />} />
+              <Route path="/analytics" element={<Analytics />} />
+              <Route path="*" element={<NotFound />} />
+            </Routes>
+          </AppLayout>
+        </StudyNotificationProvider>
       </BrowserRouter>
     </TooltipProvider>
   </QueryClientProvider>

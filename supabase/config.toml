@@ -1,0 +1,10 @@
+project_id = "shrildavsagbybrnsclm"
+
+[functions.chat]
+verify_jwt = false
+
+[functions.generate-quiz]
+verify_jwt = false
+
+[functions.parse-syllabus]
+verify_jwt = false
