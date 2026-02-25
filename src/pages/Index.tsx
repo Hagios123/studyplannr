@@ -84,7 +84,8 @@ function QuickActionCard({
 const Index = () => {
   const { tasks, sessions } = useStudyStore();
 
-  const todaysTasks = tasks.filter((t) => t.date === "2026-02-25");
+  const today = new Date().toISOString().split("T")[0];
+  const todaysTasks = tasks.filter((t) => t.date === today);
   const completedToday = todaysTasks.filter((t) => t.status === "completed").length;
   const totalMinutesToday = sessions
     .filter((s) => s.date === "2026-02-24")
