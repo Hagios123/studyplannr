@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { SyllabusUpload } from "@/components/SyllabusUpload";
-import { useStudyStore, StudyTask, Difficulty, SubjectConfig, getDurationForDifficulty } from "@/stores/useStudyStore";
-import { Check, X, Plus, CalendarDays, Sparkles, Settings2, Pencil, Trash2, Clock, BookOpen, GraduationCap } from "lucide-react";
+import { useStudyStore, StudyTask, Difficulty, SubjectConfig, getDurationForDifficulty, TaskRecurrence } from "@/stores/useStudyStore";
+import { Check, X, Plus, CalendarDays, Sparkles, Settings2, Pencil, Trash2, Clock, BookOpen, GraduationCap, Repeat } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
@@ -13,6 +13,7 @@ import { format } from "date-fns";
 import { cn } from "@/lib/utils";
 import { CalendarIcon } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { Switch } from "@/components/ui/switch";
 
 const daysOfWeek = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
 
@@ -40,17 +41,12 @@ function getDifficultyColor(d: Difficulty) {
   return DIFFICULTY_OPTIONS.find((o) => o.value === d)?.color ?? "bg-muted text-muted-foreground";
 }
 
-function getDifficultyLabel(d: Difficulty) {
-  return DIFFICULTY_OPTIONS.find((o) => o.value === d)?.label ?? d;
-}
-
-// A single subject entry in the generate form
 interface GenSubject {
   id: string;
   name: string;
   difficulty: Difficulty;
   customDuration: number;
-  topics: string; // comma-separated
+  topics: string;
 }
 
 function emptyGenSubject(): GenSubject {
@@ -62,7 +58,8 @@ export default function Planner() {
     tasks, updateTaskStatus, addTask, deleteTask, updateTask,
     subjects, subjectConfigs, updateSubjectConfig,
     freeTimeSlots, addFreeTimeSlot, removeFreeTimeSlot,
-    autoGenerateTasks,
+    autoGenerateTasks, addCustomSubject, globalMaxHours, setGlobalMaxHours,
+    generateRecurringTasks,
   } = useStudyStore();
 
   const { toast } = useToast();
@@ -71,13 +68,17 @@ export default function Planner() {
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [generateOpen, setGenerateOpen] = useState(false);
   const [editingTask, setEditingTask] = useState<StudyTask | null>(null);
+  const [usePerDayMax, setUsePerDayMax] = useState(false);
 
   // Add task form
   const [newTopic, setNewTopic] = useState("");
   const [newSubject, setNewSubject] = useState(subjects[0] || "");
+  const [newCustomSubject, setNewCustomSubject] = useState("");
   const [newTime, setNewTime] = useState("18:00");
   const [newDuration, setNewDuration] = useState("45");
   const [newPriority, setNewPriority] = useState<StudyTask["priority"]>("medium");
+  const [newRecurrence, setNewRecurrence] = useState<TaskRecurrence | undefined>();
+  const [enableRecurrence, setEnableRecurrence] = useState(false);
 
   // Generate form
   const [genStartDate, setGenStartDate] = useState<Date>(new Date());
@@ -90,20 +91,32 @@ export default function Planner() {
 
   const actualGenDays = genDays === "custom" ? parseInt(genCustomDays) || 1 : parseInt(genDays);
 
+  const effectiveSubject = newSubject === "__custom__" ? newCustomSubject : newSubject;
+
   const handleAdd = () => {
-    if (!newTopic) return;
-    addTask({
+    if (!newTopic || !effectiveSubject) return;
+    if (newSubject === "__custom__" && newCustomSubject.trim()) {
+      addCustomSubject(newCustomSubject.trim());
+    }
+    const task: StudyTask = {
       id: `t-${Date.now()}`,
-      subject: newSubject,
+      subject: effectiveSubject,
       topic: newTopic,
       date: selectedDate,
       timeSlot: newTime,
       duration: parseInt(newDuration),
       status: "pending",
       priority: newPriority,
-    });
+      recurrence: enableRecurrence ? newRecurrence : undefined,
+    };
+    addTask(task);
+    if (enableRecurrence && newRecurrence) {
+      generateRecurringTasks(task);
+    }
     setNewTopic("");
+    setNewCustomSubject("");
     setDialogOpen(false);
+    setEnableRecurrence(false);
     toast({ title: "Task added", description: `"${newTopic}" scheduled for ${selectedDate}` });
   };
 
@@ -151,6 +164,8 @@ export default function Planner() {
     setGenSubjects((prev) => prev.filter((s) => s.id !== id));
   };
 
+  const allSubjects = [...new Set([...subjects, ...subjectConfigs.map(s => s.name)])];
+
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -169,14 +184,15 @@ export default function Planner() {
             </DialogTrigger>
             <DialogContent className="max-w-lg max-h-[80vh] overflow-y-auto">
               <DialogHeader><DialogTitle>Schedule Settings</DialogTitle></DialogHeader>
-              <Tabs defaultValue="subjects" className="mt-2">
+              <Tabs defaultValue="time" className="mt-2">
                 <TabsList className="w-full">
                   <TabsTrigger value="subjects" className="flex-1">Subject Difficulty</TabsTrigger>
                   <TabsTrigger value="time" className="flex-1">Free Time</TabsTrigger>
+                  <TabsTrigger value="limits" className="flex-1">Limits</TabsTrigger>
                 </TabsList>
 
                 <TabsContent value="subjects" className="space-y-3 mt-4">
-                  <p className="text-xs text-muted-foreground">Set default difficulty per subject for quick scheduling.</p>
+                  <p className="text-xs text-muted-foreground">Set default difficulty per subject.</p>
                   {subjectConfigs.map((sc) => (
                     <div key={sc.name} className="flex items-center gap-3 p-3 rounded-lg bg-secondary/50 border border-border">
                       <BookOpen className="w-4 h-4 text-muted-foreground shrink-0" />
@@ -196,6 +212,9 @@ export default function Planner() {
                       </Select>
                     </div>
                   ))}
+                  {subjectConfigs.length === 0 && (
+                    <p className="text-sm text-muted-foreground text-center py-4">No subjects yet. Use Auto Generate to add subjects.</p>
+                  )}
                 </TabsContent>
 
                 <TabsContent value="time" className="space-y-3 mt-4">
@@ -221,6 +240,54 @@ export default function Planner() {
                     );
                   })}
                 </TabsContent>
+
+                <TabsContent value="limits" className="space-y-4 mt-4">
+                  <p className="text-xs text-muted-foreground">Set maximum study hours per day.</p>
+
+                  <div className="flex items-center justify-between p-3 rounded-lg bg-secondary/50 border border-border">
+                    <div>
+                      <p className="text-sm font-medium">Per-day max hours</p>
+                      <p className="text-xs text-muted-foreground">Set different limits for each day</p>
+                    </div>
+                    <Switch checked={usePerDayMax} onCheckedChange={setUsePerDayMax} />
+                  </div>
+
+                  {!usePerDayMax ? (
+                    <div className="flex items-center gap-3 p-3 rounded-lg bg-secondary/50 border border-border">
+                      <span className="text-sm font-medium flex-1">Global max hours/day</span>
+                      <Input
+                        type="number"
+                        value={globalMaxHours ?? ""}
+                        onChange={(e) => setGlobalMaxHours(e.target.value ? parseFloat(e.target.value) : null)}
+                        placeholder="No limit"
+                        className="w-24"
+                        min={0.5}
+                        max={24}
+                        step={0.5}
+                      />
+                    </div>
+                  ) : (
+                    <div className="space-y-2">
+                      {freeTimeSlots.map((slot) => (
+                        <div key={slot.day} className="flex items-center gap-3 p-3 rounded-lg bg-secondary/50 border border-border">
+                          <span className="w-24 text-sm font-medium">{slot.day.slice(0, 3)}</span>
+                          <span className="text-xs text-muted-foreground flex-1">{slot.startTime} - {slot.endTime}</span>
+                          <Input
+                            type="number"
+                            value={slot.maxHours ?? ""}
+                            onChange={(e) => addFreeTimeSlot({ ...slot, maxHours: e.target.value ? parseFloat(e.target.value) : undefined })}
+                            placeholder="No limit"
+                            className="w-24"
+                            min={0.5}
+                            max={24}
+                            step={0.5}
+                          />
+                          <span className="text-xs text-muted-foreground">hrs</span>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </TabsContent>
               </Tabs>
             </DialogContent>
           </Dialog>
@@ -241,7 +308,6 @@ export default function Planner() {
                   Add your subjects manually, or upload a syllabus PDF to auto-extract topics.
                 </p>
 
-                {/* Syllabus Upload */}
                 <SyllabusUpload
                   onExtracted={(subjects) => {
                     const newSubs: GenSubject[] = subjects.map((s) => ({
@@ -402,11 +468,15 @@ export default function Planner() {
               <DialogHeader><DialogTitle>Add Study Task</DialogTitle></DialogHeader>
               <div className="space-y-4 pt-2">
                 <Select value={newSubject} onValueChange={setNewSubject}>
-                  <SelectTrigger><SelectValue /></SelectTrigger>
+                  <SelectTrigger><SelectValue placeholder="Select subject" /></SelectTrigger>
                   <SelectContent>
-                    {subjects.map((s) => <SelectItem key={s} value={s}>{s}</SelectItem>)}
+                    {allSubjects.map((s) => <SelectItem key={s} value={s}>{s}</SelectItem>)}
+                    <SelectItem value="__custom__">+ Custom subject...</SelectItem>
                   </SelectContent>
                 </Select>
+                {newSubject === "__custom__" && (
+                  <Input placeholder="Enter custom subject name..." value={newCustomSubject} onChange={(e) => setNewCustomSubject(e.target.value)} />
+                )}
                 <Input placeholder="Topic name..." value={newTopic} onChange={(e) => setNewTopic(e.target.value)} />
                 <div className="grid grid-cols-2 gap-3">
                   <Input type="time" value={newTime} onChange={(e) => setNewTime(e.target.value)} />
@@ -420,6 +490,55 @@ export default function Planner() {
                     <SelectItem value="high">High</SelectItem>
                   </SelectContent>
                 </Select>
+
+                {/* Recurrence */}
+                <div className="space-y-3 p-3 rounded-lg bg-secondary/50 border border-border">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <Repeat className="w-4 h-4 text-muted-foreground" />
+                      <span className="text-sm font-medium">Repeat task</span>
+                    </div>
+                    <Switch checked={enableRecurrence} onCheckedChange={setEnableRecurrence} />
+                  </div>
+                  {enableRecurrence && (
+                    <div className="space-y-3">
+                      <Select
+                        value={newRecurrence?.type || "daily"}
+                        onValueChange={(v) => setNewRecurrence({ ...newRecurrence, type: v as TaskRecurrence["type"] })}
+                      >
+                        <SelectTrigger><SelectValue /></SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="daily">Daily</SelectItem>
+                          <SelectItem value="weekly">Weekly</SelectItem>
+                          <SelectItem value="custom">Custom interval</SelectItem>
+                        </SelectContent>
+                      </Select>
+                      {newRecurrence?.type === "custom" && (
+                        <div className="flex items-center gap-2">
+                          <span className="text-sm text-muted-foreground">Every</span>
+                          <Input
+                            type="number"
+                            value={newRecurrence?.interval || 2}
+                            onChange={(e) => setNewRecurrence({ ...newRecurrence!, interval: parseInt(e.target.value) || 1 })}
+                            className="w-20"
+                            min={1}
+                            max={365}
+                          />
+                          <span className="text-sm text-muted-foreground">days</span>
+                        </div>
+                      )}
+                      <div className="space-y-1">
+                        <label className="text-xs text-muted-foreground">End date (optional)</label>
+                        <Input
+                          type="date"
+                          value={newRecurrence?.endDate || ""}
+                          onChange={(e) => setNewRecurrence({ ...newRecurrence!, endDate: e.target.value || undefined })}
+                        />
+                      </div>
+                    </div>
+                  )}
+                </div>
+
                 <Button onClick={handleAdd} className="w-full">Add to Schedule</Button>
               </div>
             </DialogContent>
@@ -479,6 +598,7 @@ export default function Planner() {
                   "bg-muted text-muted-foreground"
                 }`}>{task.priority}</span>
                 <span className="text-xs text-muted-foreground">{task.subject}</span>
+                {task.recurrence && <Repeat className="w-3 h-3 text-muted-foreground" />}
               </div>
               <p className={`font-medium ${task.status !== "pending" ? "line-through text-muted-foreground" : ""}`}>{task.topic}</p>
             </div>
@@ -514,7 +634,7 @@ export default function Planner() {
               <Select value={editingTask.subject} onValueChange={(v) => setEditingTask({ ...editingTask, subject: v })}>
                 <SelectTrigger><SelectValue /></SelectTrigger>
                 <SelectContent>
-                  {subjects.map((s) => <SelectItem key={s} value={s}>{s}</SelectItem>)}
+                  {allSubjects.map((s) => <SelectItem key={s} value={s}>{s}</SelectItem>)}
                 </SelectContent>
               </Select>
               <Input placeholder="Topic name..." value={editingTask.topic} onChange={(e) => setEditingTask({ ...editingTask, topic: e.target.value })} />
