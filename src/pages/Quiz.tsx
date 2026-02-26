@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useStudyStore } from "@/stores/useStudyStore";
 import { HelpCircle, Check, X, RotateCcw, Sparkles, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
@@ -14,7 +15,7 @@ interface AIQuestion {
 }
 
 export default function Quiz() {
-  const { quizQuestions, subjectConfigs, tasks } = useStudyStore();
+  const { quizQuestions, subjectConfigs, tasks, subjects } = useStudyStore();
   const { toast } = useToast();
 
   const [mode, setMode] = useState<"select" | "playing" | "finished">("select");
@@ -26,10 +27,13 @@ export default function Quiz() {
   const [loading, setLoading] = useState(false);
   const [selectedSubject, setSelectedSubject] = useState<string>("");
   const [selectedTopic, setSelectedTopic] = useState<string>("");
+  const [customSubject, setCustomSubject] = useState("");
+  const [customTopic, setCustomTopic] = useState("");
 
-  // Get today's scheduled subjects for suggestions
   const today = new Date().toISOString().split("T")[0];
   const todayTasks = tasks.filter((t) => t.date === today && t.status === "pending");
+
+  const allSubjects = [...new Set([...subjects, ...subjectConfigs.map(s => s.name)])];
 
   const generateQuiz = async (subject: string, topic: string) => {
     setLoading(true);
@@ -95,18 +99,19 @@ export default function Quiz() {
     }
   };
 
+  const effectiveSubject = selectedSubject === "__custom__" ? customSubject : selectedSubject;
+  const sc = subjectConfigs.find((s) => s.name === selectedSubject);
+
   if (mode === "select") {
-    const sc = subjectConfigs.find((s) => s.name === selectedSubject);
     return (
       <div className="space-y-6">
         <div>
           <h1 className="text-2xl font-display font-bold flex items-center gap-2">
             <HelpCircle className="w-6 h-6 text-primary" /> Quiz
           </h1>
-          <p className="text-muted-foreground text-sm mt-1">AI-generated quizzes based on your subjects</p>
+          <p className="text-muted-foreground text-sm mt-1">AI-generated quizzes on any subject</p>
         </div>
 
-        {/* Today's study suggestions */}
         {todayTasks.length > 0 && (
           <div className="space-y-2">
             <p className="text-sm font-medium text-accent flex items-center gap-1.5">
@@ -130,18 +135,26 @@ export default function Quiz() {
           </div>
         )}
 
-        {/* Manual select */}
         <div className="max-w-md space-y-4 p-6 rounded-xl border border-border bg-card">
           <h3 className="font-display font-semibold">Generate AI Quiz</h3>
 
           <Select value={selectedSubject} onValueChange={(v) => { setSelectedSubject(v); setSelectedTopic(""); }}>
             <SelectTrigger><SelectValue placeholder="Choose subject" /></SelectTrigger>
             <SelectContent>
-              {subjectConfigs.map((s) => (
-                <SelectItem key={s.name} value={s.name}>{s.name}</SelectItem>
+              {allSubjects.map((s) => (
+                <SelectItem key={s} value={s}>{s}</SelectItem>
               ))}
+              <SelectItem value="__custom__">+ Custom subject...</SelectItem>
             </SelectContent>
           </Select>
+
+          {selectedSubject === "__custom__" && (
+            <Input
+              placeholder="Enter any subject..."
+              value={customSubject}
+              onChange={(e) => setCustomSubject(e.target.value)}
+            />
+          )}
 
           {sc && sc.topics.length > 0 && (
             <Select value={selectedTopic} onValueChange={setSelectedTopic}>
@@ -150,13 +163,25 @@ export default function Quiz() {
                 {sc.topics.map((t) => (
                   <SelectItem key={t} value={t}>{t}</SelectItem>
                 ))}
+                <SelectItem value="__custom_topic__">+ Custom topic...</SelectItem>
               </SelectContent>
             </Select>
           )}
 
+          {(selectedSubject === "__custom__" || selectedTopic === "__custom_topic__" || (!sc && selectedSubject)) && (
+            <Input
+              placeholder="Enter topic (optional)..."
+              value={customTopic}
+              onChange={(e) => setCustomTopic(e.target.value)}
+            />
+          )}
+
           <Button
-            onClick={() => generateQuiz(selectedSubject, selectedTopic || selectedSubject)}
-            disabled={!selectedSubject || loading}
+            onClick={() => {
+              const topic = selectedTopic === "__custom_topic__" ? customTopic : (selectedTopic || customTopic || effectiveSubject);
+              generateQuiz(effectiveSubject, topic);
+            }}
+            disabled={!effectiveSubject || loading}
             className="w-full gap-2"
           >
             {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Sparkles className="w-4 h-4" />}

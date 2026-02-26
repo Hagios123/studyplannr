@@ -5,14 +5,15 @@ export type Difficulty = "very-easy" | "easy" | "moderate" | "hard" | "very-hard
 export interface SubjectConfig {
   name: string;
   difficulty: Difficulty;
-  customDuration?: number; // only used when difficulty is "custom"
+  customDuration?: number;
   topics: string[];
 }
 
 export interface FreeTimeSlot {
-  day: string; // e.g. "Monday"
-  startTime: string; // "18:00"
-  endTime: string; // "21:00"
+  day: string;
+  startTime: string;
+  endTime: string;
+  maxHours?: number; // max study hours for this day
 }
 
 export interface StudyTask {
@@ -21,14 +22,22 @@ export interface StudyTask {
   topic: string;
   date: string;
   timeSlot: string;
-  duration: number; // minutes
+  duration: number;
   status: "pending" | "completed" | "skipped";
   priority: "low" | "medium" | "high";
+  recurrence?: TaskRecurrence;
+}
+
+export interface TaskRecurrence {
+  type: "daily" | "weekly" | "custom";
+  interval?: number; // e.g. every N days
+  endDate?: string;
 }
 
 export interface Flashcard {
   id: string;
   subject: string;
+  topic?: string;
   front: string;
   back: string;
   mastered: boolean;
@@ -50,7 +59,6 @@ export interface StudySession {
   type: "pomodoro" | "regular";
 }
 
-// Duration in minutes based on difficulty
 const DIFFICULTY_DURATION: Record<Exclude<Difficulty, "custom">, number> = {
   "very-easy": 15,
   easy: 25,
@@ -78,6 +86,27 @@ export function getPriorityForDifficulty(difficulty: Difficulty): StudyTask["pri
   return DIFFICULTY_PRIORITY[difficulty];
 }
 
+function getDayName(dateStr: string): string {
+  const d = new Date(dateStr + "T12:00:00");
+  return d.toLocaleDateString("en-US", { weekday: "long" });
+}
+
+function addMinutesToTime(time: string, minutes: number): string {
+  const [h, m] = time.split(":").map(Number);
+  const totalMins = h * 60 + m + minutes;
+  const newH = Math.floor(totalMins / 60) % 24;
+  const newM = totalMins % 60;
+  return `${String(newH).padStart(2, "0")}:${String(newM).padStart(2, "0")}`;
+}
+
+function slotMinutes(slot: FreeTimeSlot): number {
+  const [sh, sm] = slot.startTime.split(":").map(Number);
+  const [eh, em] = slot.endTime.split(":").map(Number);
+  const total = (eh * 60 + em) - (sh * 60 + sm);
+  if (slot.maxHours) return Math.min(total, slot.maxHours * 60);
+  return total;
+}
+
 interface StudyStore {
   tasks: StudyTask[];
   flashcards: Flashcard[];
@@ -86,6 +115,7 @@ interface StudyStore {
   subjects: string[];
   subjectConfigs: SubjectConfig[];
   freeTimeSlots: FreeTimeSlot[];
+  globalMaxHours: number | null;
 
   addTask: (task: StudyTask) => void;
   updateTask: (id: string, updates: Partial<StudyTask>) => void;
@@ -93,6 +123,7 @@ interface StudyStore {
   updateTaskStatus: (id: string, status: StudyTask["status"]) => void;
   addSession: (session: StudySession) => void;
   toggleFlashcardMastered: (id: string) => void;
+  addFlashcard: (card: Flashcard) => void;
 
   updateSubjectConfig: (name: string, config: Partial<SubjectConfig>) => void;
   addSubjectConfig: (config: SubjectConfig) => void;
@@ -100,15 +131,13 @@ interface StudyStore {
   setFreeTimeSlots: (slots: FreeTimeSlot[]) => void;
   addFreeTimeSlot: (slot: FreeTimeSlot) => void;
   removeFreeTimeSlot: (day: string) => void;
+  setGlobalMaxHours: (hours: number | null) => void;
+
+  addCustomSubject: (name: string) => void;
 
   autoGenerateTasks: (startDate: string, days: number, customConfigs?: SubjectConfig[]) => void;
+  generateRecurringTasks: (task: StudyTask) => void;
 }
-
-const defaultSubjectConfigs: SubjectConfig[] = [
-  { name: "Mathematics", difficulty: "hard", topics: ["Linear Algebra - Eigenvalues", "Calculus - Integration by Parts", "Calculus - Differential Equations", "Probability - Bayes' Theorem"] },
-  { name: "Physics", difficulty: "moderate", topics: ["Quantum Mechanics - Wave Functions", "Thermodynamics - Entropy", "Electromagnetism - Maxwell's Equations", "Optics - Diffraction"] },
-  { name: "Computer Science", difficulty: "moderate", topics: ["Data Structures - B-Trees", "Algorithms - Dynamic Programming", "Algorithms - Graph Theory", "OS - Memory Management"] },
-];
 
 const defaultFreeTimeSlots: FreeTimeSlot[] = [
   { day: "Monday", startTime: "18:00", endTime: "21:00" },
@@ -121,10 +150,10 @@ const defaultFreeTimeSlots: FreeTimeSlot[] = [
 ];
 
 const mockFlashcards: Flashcard[] = [
-  { id: "f1", subject: "Mathematics", front: "What is an eigenvalue?", back: "A scalar λ such that Av = λv for a nonzero vector v and matrix A.", mastered: false },
-  { id: "f2", subject: "Physics", front: "What is the Schrödinger equation?", back: "iℏ ∂/∂t |Ψ⟩ = Ĥ |Ψ⟩ — describes how the quantum state of a system changes over time.", mastered: false },
-  { id: "f3", subject: "Computer Science", front: "What is the time complexity of searching a B-tree?", back: "O(log n) — balanced tree structure ensures logarithmic search time.", mastered: true },
-  { id: "f4", subject: "Mathematics", front: "What is integration by parts formula?", back: "∫u dv = uv − ∫v du", mastered: false },
+  { id: "f1", subject: "Mathematics", topic: "Eigenvalues", front: "What is an eigenvalue?", back: "A scalar λ such that Av = λv for a nonzero vector v and matrix A.", mastered: false },
+  { id: "f2", subject: "Physics", topic: "Wave Functions", front: "What is the Schrödinger equation?", back: "iℏ ∂/∂t |Ψ⟩ = Ĥ |Ψ⟩ — describes how the quantum state of a system changes over time.", mastered: false },
+  { id: "f3", subject: "Computer Science", topic: "B-Trees", front: "What is the time complexity of searching a B-tree?", back: "O(log n) — balanced tree structure ensures logarithmic search time.", mastered: true },
+  { id: "f4", subject: "Mathematics", topic: "Integration", front: "What is integration by parts formula?", back: "∫u dv = uv − ∫v du", mastered: false },
 ];
 
 const mockQuiz: QuizQuestion[] = [
@@ -146,36 +175,15 @@ const mockSessions: StudySession[] = [
   { id: "s10", date: "2026-02-24", subject: "Mathematics", duration: 50, type: "regular" },
 ];
 
-// Helper: get day name from date string
-function getDayName(dateStr: string): string {
-  const d = new Date(dateStr + "T12:00:00");
-  return d.toLocaleDateString("en-US", { weekday: "long" });
-}
-
-// Helper: add minutes to a time string "HH:MM"
-function addMinutesToTime(time: string, minutes: number): string {
-  const [h, m] = time.split(":").map(Number);
-  const totalMins = h * 60 + m + minutes;
-  const newH = Math.floor(totalMins / 60) % 24;
-  const newM = totalMins % 60;
-  return `${String(newH).padStart(2, "0")}:${String(newM).padStart(2, "0")}`;
-}
-
-// Helper: available minutes from a free time slot
-function slotMinutes(slot: FreeTimeSlot): number {
-  const [sh, sm] = slot.startTime.split(":").map(Number);
-  const [eh, em] = slot.endTime.split(":").map(Number);
-  return (eh * 60 + em) - (sh * 60 + sm);
-}
-
 export const useStudyStore = create<StudyStore>((set, get) => ({
   tasks: [],
   flashcards: mockFlashcards,
   quizQuestions: mockQuiz,
   sessions: mockSessions,
-  subjects: ["Mathematics", "Physics", "Computer Science"],
-  subjectConfigs: defaultSubjectConfigs,
+  subjects: [],
+  subjectConfigs: [],
   freeTimeSlots: defaultFreeTimeSlots,
+  globalMaxHours: null,
 
   addTask: (task) => set((state) => ({ tasks: [...state.tasks, task] })),
 
@@ -201,6 +209,8 @@ export const useStudyStore = create<StudyStore>((set, get) => ({
       ),
     })),
 
+  addFlashcard: (card) => set((state) => ({ flashcards: [...state.flashcards, card] })),
+
   updateSubjectConfig: (name, config) =>
     set((state) => ({
       subjectConfigs: state.subjectConfigs.map((s) =>
@@ -211,7 +221,7 @@ export const useStudyStore = create<StudyStore>((set, get) => ({
   addSubjectConfig: (config) =>
     set((state) => ({
       subjectConfigs: [...state.subjectConfigs, config],
-      subjects: [...state.subjects, config.name],
+      subjects: state.subjects.includes(config.name) ? state.subjects : [...state.subjects, config.name],
     })),
 
   removeSubjectConfig: (name) =>
@@ -232,12 +242,22 @@ export const useStudyStore = create<StudyStore>((set, get) => ({
       freeTimeSlots: state.freeTimeSlots.filter((s) => s.day !== day),
     })),
 
+  setGlobalMaxHours: (hours) => set({ globalMaxHours: hours }),
+
+  addCustomSubject: (name) =>
+    set((state) => {
+      if (state.subjects.includes(name)) return state;
+      return { subjects: [...state.subjects, name] };
+    }),
+
   autoGenerateTasks: (startDate: string, days: number, customConfigs?: SubjectConfig[]) => {
-    const { subjectConfigs, freeTimeSlots } = get();
+    const { subjectConfigs, freeTimeSlots, globalMaxHours } = get();
     const configs = customConfigs || subjectConfigs;
     const newTasks: StudyTask[] = [];
 
-    // Build a round-robin queue of all topics with their subject config
+    // Also register subjects
+    const newSubjects = configs.map(c => c.name);
+
     const topicQueue: { subject: string; topic: string; difficulty: Difficulty; customDuration?: number }[] = [];
     const maxTopics = Math.max(...configs.map((s) => s.topics.length));
     for (let i = 0; i < maxTopics; i++) {
@@ -260,7 +280,8 @@ export const useStudyStore = create<StudyStore>((set, get) => ({
       if (!slot) continue;
 
       let currentTime = slot.startTime;
-      const availableMinutes = slotMinutes(slot);
+      let availableMinutes = slotMinutes(slot);
+      if (globalMaxHours) availableMinutes = Math.min(availableMinutes, globalMaxHours * 60);
       let usedMinutes = 0;
       const GAP = 5;
 
@@ -285,6 +306,40 @@ export const useStudyStore = create<StudyStore>((set, get) => ({
         usedMinutes += duration + GAP;
         topicIndex++;
       }
+    }
+
+    set((state) => ({
+      tasks: [...state.tasks, ...newTasks],
+      subjects: [...new Set([...state.subjects, ...newSubjects])],
+      subjectConfigs: [
+        ...state.subjectConfigs.filter(sc => !configs.find(c => c.name === sc.name)),
+        ...configs,
+      ],
+    }));
+  },
+
+  generateRecurringTasks: (task: StudyTask) => {
+    if (!task.recurrence) return;
+    const { recurrence } = task;
+    const newTasks: StudyTask[] = [];
+    const startDate = new Date(task.date + "T12:00:00");
+    const endDate = recurrence.endDate ? new Date(recurrence.endDate + "T12:00:00") : new Date(startDate);
+    if (!recurrence.endDate) endDate.setDate(endDate.getDate() + 30); // default 30 days
+
+    const interval = recurrence.type === "daily" ? 1 : recurrence.type === "weekly" ? 7 : (recurrence.interval || 1);
+
+    let current = new Date(startDate);
+    current.setDate(current.getDate() + interval); // skip original
+
+    while (current <= endDate) {
+      const dateStr = current.toISOString().split("T")[0];
+      newTasks.push({
+        ...task,
+        id: `rec-${Date.now()}-${Math.random().toString(36).slice(2)}`,
+        date: dateStr,
+        status: "pending",
+      });
+      current.setDate(current.getDate() + interval);
     }
 
     set((state) => ({ tasks: [...state.tasks, ...newTasks] }));

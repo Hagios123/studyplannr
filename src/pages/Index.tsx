@@ -1,4 +1,5 @@
 import { useStudyStore } from "@/stores/useStudyStore";
+import { useAuth } from "@/hooks/useAuth";
 import {
   CalendarDays,
   CheckCircle2,
@@ -7,8 +8,10 @@ import {
   BookOpen,
   Sparkles,
   ArrowRight,
+  LogOut,
 } from "lucide-react";
 import { Link } from "react-router-dom";
+import { Button } from "@/components/ui/button";
 
 function StatCard({
   icon: Icon,
@@ -83,44 +86,51 @@ function QuickActionCard({
 
 const Index = () => {
   const { tasks, sessions } = useStudyStore();
+  const { profile, signOut } = useAuth();
 
   const today = new Date().toISOString().split("T")[0];
   const todaysTasks = tasks.filter((t) => t.date === today);
   const completedToday = todaysTasks.filter((t) => t.status === "completed").length;
   const totalMinutesToday = sessions
-    .filter((s) => s.date === "2026-02-24")
+    .filter((s) => s.date === today)
     .reduce((acc, s) => acc + s.duration, 0);
   const totalHoursWeek = (sessions.reduce((acc, s) => acc + s.duration, 0) / 60).toFixed(1);
 
+  const displayName = profile?.display_name || profile?.username || "Scholar";
+
   return (
     <div className="space-y-8">
-      {/* Header */}
-      <div>
-        <h1 className="text-3xl font-display font-bold tracking-tight">
-          Good evening, <span className="text-gradient-primary">Scholar</span>
-        </h1>
-        <p className="text-muted-foreground mt-1">
-          You have {todaysTasks.filter((t) => t.status === "pending").length} tasks remaining today. Let's make progress.
-        </p>
+      <div className="flex items-start justify-between">
+        <div>
+          <h1 className="text-3xl font-display font-bold tracking-tight">
+            Good evening, <span className="text-gradient-primary">{displayName}</span>
+          </h1>
+          <p className="text-muted-foreground mt-1">
+            You have {todaysTasks.filter((t) => t.status === "pending").length} tasks remaining today. Let's make progress.
+          </p>
+        </div>
+        <Button variant="ghost" size="sm" onClick={signOut} className="gap-2 text-muted-foreground">
+          <LogOut className="w-4 h-4" /> Sign out
+        </Button>
       </div>
 
-      {/* Stats */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <StatCard icon={CalendarDays} label="Today's Tasks" value={`${completedToday}/${todaysTasks.length}`} sublabel="tasks completed" variant="primary" />
-        <StatCard icon={Clock} label="Study Time" value={`${Math.round(totalMinutesToday / 60)}h ${totalMinutesToday % 60}m`} sublabel="yesterday" variant="default" />
+        <StatCard icon={Clock} label="Study Time" value={`${Math.round(totalMinutesToday / 60)}h ${totalMinutesToday % 60}m`} sublabel="today" variant="default" />
         <StatCard icon={TrendingUp} label="Weekly Hours" value={`${totalHoursWeek}h`} sublabel="this week" variant="accent" />
-        <StatCard icon={CheckCircle2} label="Completion Rate" value={`${Math.round((tasks.filter((t) => t.status === "completed").length / tasks.length) * 100)}%`} sublabel="overall" variant="success" />
+        <StatCard icon={CheckCircle2} label="Completion Rate" value={`${tasks.length > 0 ? Math.round((tasks.filter((t) => t.status === "completed").length / tasks.length) * 100) : 0}%`} sublabel="overall" variant="success" />
       </div>
 
-      {/* Two column layout */}
       <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
-        {/* Upcoming Tasks */}
         <div className="lg:col-span-3 space-y-4">
           <h2 className="font-display font-semibold text-lg flex items-center gap-2">
             <CalendarDays className="w-5 h-5 text-primary" />
             Today's Schedule
           </h2>
           <div className="space-y-2">
+            {todaysTasks.length === 0 && (
+              <p className="text-sm text-muted-foreground py-8 text-center">No tasks scheduled for today. Go to Planner to add some!</p>
+            )}
             {todaysTasks.map((task) => (
               <div
                 key={task.id}
@@ -147,7 +157,6 @@ const Index = () => {
           </div>
         </div>
 
-        {/* Quick Actions */}
         <div className="lg:col-span-2 space-y-4">
           <h2 className="font-display font-semibold text-lg flex items-center gap-2">
             <Sparkles className="w-5 h-5 text-accent" />
