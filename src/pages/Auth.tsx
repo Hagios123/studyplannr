@@ -50,7 +50,7 @@ export default function Auth() {
           <p className="text-muted-foreground text-sm">Your AI-powered study companion</p>
         </div>
 
-        <div className="bg-card border border-border rounded-2xl p-8 space-y-6">
+        <div className="bg-card border border-border rounded-2xl p-5 md:p-8 space-y-5 md:space-y-6">
           <div className="flex rounded-lg bg-secondary p-1">
             <button
               onClick={() => setMode("login")}
