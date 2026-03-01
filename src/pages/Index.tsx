@@ -121,7 +121,7 @@ const Index = () => {
         <StatCard icon={CheckCircle2} label="Completion Rate" value={`${tasks.length > 0 ? Math.round((tasks.filter((t) => t.status === "completed").length / tasks.length) * 100) : 0}%`} sublabel="overall" variant="success" />
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-5 gap-4 md:gap-6">
         <div className="lg:col-span-3 space-y-4">
           <h2 className="font-display font-semibold text-lg flex items-center gap-2">
             <CalendarDays className="w-5 h-5 text-primary" />
