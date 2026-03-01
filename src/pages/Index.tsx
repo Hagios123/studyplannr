@@ -99,22 +99,22 @@ const Index = () => {
   const displayName = profile?.display_name || profile?.username || "Scholar";
 
   return (
-    <div className="space-y-8">
-      <div className="flex items-start justify-between">
+    <div className="space-y-6 md:space-y-8">
+      <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-3">
         <div>
-          <h1 className="text-3xl font-display font-bold tracking-tight">
+          <h1 className="text-2xl md:text-3xl font-display font-bold tracking-tight">
             Good evening, <span className="text-gradient-primary">{displayName}</span>
           </h1>
-          <p className="text-muted-foreground mt-1">
-            You have {todaysTasks.filter((t) => t.status === "pending").length} tasks remaining today. Let's make progress.
+          <p className="text-muted-foreground text-sm md:text-base mt-1">
+            You have {todaysTasks.filter((t) => t.status === "pending").length} tasks remaining today.
           </p>
         </div>
-        <Button variant="ghost" size="sm" onClick={signOut} className="gap-2 text-muted-foreground">
+        <Button variant="ghost" size="sm" onClick={signOut} className="gap-2 text-muted-foreground self-start">
           <LogOut className="w-4 h-4" /> Sign out
         </Button>
       </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4">
         <StatCard icon={CalendarDays} label="Today's Tasks" value={`${completedToday}/${todaysTasks.length}`} sublabel="tasks completed" variant="primary" />
         <StatCard icon={Clock} label="Study Time" value={`${Math.round(totalMinutesToday / 60)}h ${totalMinutesToday % 60}m`} sublabel="today" variant="default" />
         <StatCard icon={TrendingUp} label="Weekly Hours" value={`${totalHoursWeek}h`} sublabel="this week" variant="accent" />
