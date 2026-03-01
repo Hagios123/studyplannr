@@ -208,16 +208,16 @@ export default function Tutor() {
   };
 
   return (
-    <div className="flex flex-col h-[calc(100vh-6rem)]">
-      <div className="mb-4 flex items-start justify-between">
+    <div className="flex flex-col h-[calc(100vh-6rem)] md:h-[calc(100vh-6rem)] h-[calc(100dvh-8rem)]">
+      <div className="mb-3 md:mb-4 flex flex-col sm:flex-row sm:items-start justify-between gap-2">
         <div>
-          <h1 className="text-2xl font-display font-bold flex items-center gap-2">
-            <MessageSquare className="w-6 h-6 text-primary" /> AI Tutor
+          <h1 className="text-xl md:text-2xl font-display font-bold flex items-center gap-2">
+            <MessageSquare className="w-5 h-5 md:w-6 md:h-6 text-primary" /> AI Tutor
           </h1>
-          <p className="text-muted-foreground text-sm mt-1">Your Socratic study companion — upload files or ask anything</p>
+          <p className="text-muted-foreground text-xs md:text-sm mt-1">Upload files or ask anything</p>
         </div>
         <Select value={selectedSubject} onValueChange={setSelectedSubject}>
-          <SelectTrigger className="w-[180px]">
+          <SelectTrigger className="w-full sm:w-[180px]">
             <SelectValue placeholder="All subjects" />
           </SelectTrigger>
           <SelectContent>

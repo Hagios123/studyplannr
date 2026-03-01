@@ -117,16 +117,16 @@ export default function Flashcards() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
         <div>
-          <h1 className="text-2xl font-display font-bold flex items-center gap-2">
-            <Layers className="w-6 h-6 text-primary" /> Flashcards
+          <h1 className="text-xl md:text-2xl font-display font-bold flex items-center gap-2">
+            <Layers className="w-5 h-5 md:w-6 md:h-6 text-primary" /> Flashcards
           </h1>
-          <p className="text-muted-foreground text-sm mt-1">
+          <p className="text-muted-foreground text-xs md:text-sm mt-1">
             {filtered.length} cards · {flashcards.filter((f) => f.mastered).length} mastered
           </p>
         </div>
-        <div className="flex gap-2">
+        <div className="flex gap-2 flex-wrap">
           <Dialog open={genOpen} onOpenChange={setGenOpen}>
             <DialogTrigger asChild>
               <Button size="sm" className="gap-1.5">

@@ -41,15 +41,15 @@ function StatCard({
   };
 
   return (
-    <div className={`rounded-xl border p-5 ${variants[variant]} transition-all duration-300 hover:scale-[1.02]`}>
-      <div className="flex items-center gap-3 mb-3">
-        <div className={`w-9 h-9 rounded-lg bg-secondary flex items-center justify-center`}>
-          <Icon className={`w-4.5 h-4.5 ${iconVariants[variant]}`} />
+    <div className={`rounded-xl border p-3 md:p-5 ${variants[variant]} transition-all duration-300 hover:scale-[1.02]`}>
+      <div className="flex items-center gap-2 md:gap-3 mb-2 md:mb-3">
+        <div className="w-7 h-7 md:w-9 md:h-9 rounded-lg bg-secondary flex items-center justify-center">
+          <Icon className={`w-3.5 h-3.5 md:w-4.5 md:h-4.5 ${iconVariants[variant]}`} />
         </div>
-        <span className="text-sm text-muted-foreground font-medium">{label}</span>
+        <span className="text-xs md:text-sm text-muted-foreground font-medium truncate">{label}</span>
       </div>
-      <p className="text-3xl font-display font-bold">{value}</p>
-      {sublabel && <p className="text-xs text-muted-foreground mt-1">{sublabel}</p>}
+      <p className="text-xl md:text-3xl font-display font-bold">{value}</p>
+      {sublabel && <p className="text-[10px] md:text-xs text-muted-foreground mt-1">{sublabel}</p>}
     </div>
   );
 }
@@ -99,29 +99,29 @@ const Index = () => {
   const displayName = profile?.display_name || profile?.username || "Scholar";
 
   return (
-    <div className="space-y-8">
-      <div className="flex items-start justify-between">
+    <div className="space-y-6 md:space-y-8">
+      <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-3">
         <div>
-          <h1 className="text-3xl font-display font-bold tracking-tight">
+          <h1 className="text-2xl md:text-3xl font-display font-bold tracking-tight">
             Good evening, <span className="text-gradient-primary">{displayName}</span>
           </h1>
-          <p className="text-muted-foreground mt-1">
-            You have {todaysTasks.filter((t) => t.status === "pending").length} tasks remaining today. Let's make progress.
+          <p className="text-muted-foreground text-sm md:text-base mt-1">
+            You have {todaysTasks.filter((t) => t.status === "pending").length} tasks remaining today.
           </p>
         </div>
-        <Button variant="ghost" size="sm" onClick={signOut} className="gap-2 text-muted-foreground">
+        <Button variant="ghost" size="sm" onClick={signOut} className="gap-2 text-muted-foreground self-start">
           <LogOut className="w-4 h-4" /> Sign out
         </Button>
       </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4">
         <StatCard icon={CalendarDays} label="Today's Tasks" value={`${completedToday}/${todaysTasks.length}`} sublabel="tasks completed" variant="primary" />
         <StatCard icon={Clock} label="Study Time" value={`${Math.round(totalMinutesToday / 60)}h ${totalMinutesToday % 60}m`} sublabel="today" variant="default" />
         <StatCard icon={TrendingUp} label="Weekly Hours" value={`${totalHoursWeek}h`} sublabel="this week" variant="accent" />
         <StatCard icon={CheckCircle2} label="Completion Rate" value={`${tasks.length > 0 ? Math.round((tasks.filter((t) => t.status === "completed").length / tasks.length) * 100) : 0}%`} sublabel="overall" variant="success" />
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-5 gap-4 md:gap-6">
         <div className="lg:col-span-3 space-y-4">
           <h2 className="font-display font-semibold text-lg flex items-center gap-2">
             <CalendarDays className="w-5 h-5 text-primary" />
