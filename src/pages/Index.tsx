@@ -41,15 +41,15 @@ function StatCard({
   };
 
   return (
-    <div className={`rounded-xl border p-5 ${variants[variant]} transition-all duration-300 hover:scale-[1.02]`}>
-      <div className="flex items-center gap-3 mb-3">
-        <div className={`w-9 h-9 rounded-lg bg-secondary flex items-center justify-center`}>
-          <Icon className={`w-4.5 h-4.5 ${iconVariants[variant]}`} />
+    <div className={`rounded-xl border p-3 md:p-5 ${variants[variant]} transition-all duration-300 hover:scale-[1.02]`}>
+      <div className="flex items-center gap-2 md:gap-3 mb-2 md:mb-3">
+        <div className="w-7 h-7 md:w-9 md:h-9 rounded-lg bg-secondary flex items-center justify-center">
+          <Icon className={`w-3.5 h-3.5 md:w-4.5 md:h-4.5 ${iconVariants[variant]}`} />
         </div>
-        <span className="text-sm text-muted-foreground font-medium">{label}</span>
+        <span className="text-xs md:text-sm text-muted-foreground font-medium truncate">{label}</span>
       </div>
-      <p className="text-3xl font-display font-bold">{value}</p>
-      {sublabel && <p className="text-xs text-muted-foreground mt-1">{sublabel}</p>}
+      <p className="text-xl md:text-3xl font-display font-bold">{value}</p>
+      {sublabel && <p className="text-[10px] md:text-xs text-muted-foreground mt-1">{sublabel}</p>}
     </div>
   );
 }
