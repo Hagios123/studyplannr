@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from "react";
-import { MessageSquare, Send, Sparkles, BookOpen } from "lucide-react";
+import { MessageSquare, Send, Sparkles, BookOpen, Paperclip, FileText, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useStudyStore } from "@/stores/useStudyStore";
@@ -13,7 +13,38 @@ interface Message {
   content: string;
 }
 
+interface UploadedFile {
+  name: string;
+  content: string;
+}
+
 const CHAT_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/chat`;
+
+function extractTextFromPDF(data: Uint8Array): string {
+  const text: string[] = [];
+  const str = new TextDecoder("latin1").decode(data);
+  const streamRegex = /stream\s*([\s\S]*?)\s*endstream/g;
+  let match;
+  while ((match = streamRegex.exec(str)) !== null) {
+    const block = match[1];
+    const tjRegex = /\(([^)]*)\)\s*Tj/g;
+    let tjMatch;
+    while ((tjMatch = tjRegex.exec(block)) !== null) {
+      text.push(tjMatch[1]);
+    }
+    const tjArrayRegex = /\[(.*?)\]\s*TJ/g;
+    let arrMatch;
+    while ((arrMatch = tjArrayRegex.exec(block)) !== null) {
+      const items = arrMatch[1];
+      const strRegex = /\(([^)]*)\)/g;
+      let sMatch;
+      while ((sMatch = strRegex.exec(items)) !== null) {
+        text.push(sMatch[1]);
+      }
+    }
+  }
+  return text.join(" ").replace(/\\n/g, "\n").replace(/\s+/g, " ").trim();
+}
 
 export default function Tutor() {
   const { tasks, subjectConfigs } = useStudyStore();
@@ -22,15 +53,16 @@ export default function Tutor() {
     {
       id: "welcome",
       role: "assistant",
-      content: "👋 Hello! I'm **Nova**, your AI study tutor. I can help you understand complex topics, summarize chapters, and explain concepts step-by-step.\n\nSelect a subject above or just ask me anything!",
+      content: "👋 Hello! I'm **Nova**, your AI study tutor. I can help you understand complex topics, summarize chapters, and explain concepts step-by-step.\n\nYou can also **upload PDFs or text files** using the 📎 button for me to analyze!\n\nSelect a subject above or just ask me anything!",
     },
   ]);
   const [input, setInput] = useState("");
   const [isTyping, setIsTyping] = useState(false);
   const [selectedSubject, setSelectedSubject] = useState<string>("all");
+  const [uploadedFiles, setUploadedFiles] = useState<UploadedFile[]>([]);
   const scrollRef = useRef<HTMLDivElement>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
-  // Check if there's a current study task to suggest context
   const today = new Date().toISOString().split("T")[0];
   const currentTasks = tasks.filter((t) => t.date === today && t.status === "pending");
 
@@ -38,20 +70,64 @@ export default function Tutor() {
     scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: "smooth" });
   }, [messages]);
 
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
+    if (!files) return;
+
+    for (const file of Array.from(files)) {
+      try {
+        if (file.size > 10 * 1024 * 1024) {
+          toast({ title: "File too large", description: "Max 10MB per file", variant: "destructive" });
+          continue;
+        }
+
+        let content = "";
+        if (file.type === "application/pdf") {
+          const buffer = await file.arrayBuffer();
+          content = extractTextFromPDF(new Uint8Array(buffer));
+          if (!content.trim()) {
+            toast({ title: "Could not extract PDF text", description: "Try a text-based PDF", variant: "destructive" });
+            continue;
+          }
+        } else {
+          content = await file.text();
+        }
+
+        // Truncate very long files
+        const truncated = content.length > 15000 ? content.slice(0, 15000) + "\n\n[...truncated]" : content;
+        setUploadedFiles((prev) => [...prev, { name: file.name, content: truncated }]);
+        toast({ title: "File uploaded", description: `${file.name} ready for analysis` });
+      } catch (err) {
+        toast({ title: "Upload failed", description: `Could not read ${file.name}`, variant: "destructive" });
+      }
+    }
+    e.target.value = "";
+  };
+
+  const removeFile = (idx: number) => {
+    setUploadedFiles((prev) => prev.filter((_, i) => i !== idx));
+  };
+
   const sendMessage = async () => {
-    if (!input.trim() || isTyping) return;
-    const userMsg: Message = { id: `u-${Date.now()}`, role: "user", content: input.trim() };
+    if ((!input.trim() && uploadedFiles.length === 0) || isTyping) return;
+
+    let userContent = input.trim();
+    
+    // Append file contents to the message
+    if (uploadedFiles.length > 0) {
+      const fileContext = uploadedFiles.map((f) => `\n\n--- File: ${f.name} ---\n${f.content}`).join("");
+      userContent = (userContent || "Please analyze the uploaded file(s) and help me understand the content.") + fileContext;
+    }
+
+    const userMsg: Message = { id: `u-${Date.now()}`, role: "user", content: input.trim() || `📎 Uploaded: ${uploadedFiles.map(f => f.name).join(", ")}` };
     setMessages((prev) => [...prev, userMsg]);
     setInput("");
+    setUploadedFiles([]);
     setIsTyping(true);
 
     let assistantSoFar = "";
-    const allMessages = [...messages.filter((m) => m.id !== "welcome"), userMsg].map((m) => ({
-      role: m.role,
-      content: m.content,
-    }));
+    const allMessages = [...messages.filter((m) => m.id !== "welcome"), { role: "user" as const, content: userContent }];
 
-    // Add subject context if selected
     if (selectedSubject !== "all") {
       const sc = subjectConfigs.find((s) => s.name === selectedSubject);
       if (sc) {
@@ -138,7 +214,7 @@ export default function Tutor() {
           <h1 className="text-2xl font-display font-bold flex items-center gap-2">
             <MessageSquare className="w-6 h-6 text-primary" /> AI Tutor
           </h1>
-          <p className="text-muted-foreground text-sm mt-1">Your Socratic study companion — powered by AI</p>
+          <p className="text-muted-foreground text-sm mt-1">Your Socratic study companion — upload files or ask anything</p>
         </div>
         <Select value={selectedSubject} onValueChange={setSelectedSubject}>
           <SelectTrigger className="w-[180px]">
@@ -153,7 +229,6 @@ export default function Tutor() {
         </Select>
       </div>
 
-      {/* Current task context */}
       {currentTasks.length > 0 && (
         <div className="mb-3 p-3 rounded-lg bg-accent/5 border border-accent/20 flex items-center gap-2">
           <BookOpen className="w-4 h-4 text-accent shrink-0" />
@@ -164,7 +239,6 @@ export default function Tutor() {
         </div>
       )}
 
-      {/* Messages */}
       <div ref={scrollRef} className="flex-1 overflow-y-auto space-y-4 pb-4 pr-2">
         {messages.map((msg) => (
           <div key={msg.id} className={`flex ${msg.role === "user" ? "justify-end" : "justify-start"} animate-fade-in`}>
@@ -204,16 +278,48 @@ export default function Tutor() {
         )}
       </div>
 
+      {/* Uploaded files preview */}
+      {uploadedFiles.length > 0 && (
+        <div className="flex gap-2 flex-wrap px-1 pt-2">
+          {uploadedFiles.map((f, i) => (
+            <div key={i} className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-secondary border border-border text-xs">
+              <FileText className="w-3 h-3 text-primary" />
+              <span className="max-w-[120px] truncate">{f.name}</span>
+              <button onClick={() => removeFile(i)} className="text-muted-foreground hover:text-foreground">
+                <X className="w-3 h-3" />
+              </button>
+            </div>
+          ))}
+        </div>
+      )}
+
       {/* Input */}
-      <div className="flex gap-3 pt-4 border-t border-border">
+      <div className="flex gap-2 pt-4 border-t border-border">
+        <input
+          ref={fileInputRef}
+          type="file"
+          accept=".pdf,.txt,.md,.doc,.docx,.csv,.json"
+          multiple
+          className="hidden"
+          onChange={handleFileUpload}
+        />
+        <Button
+          variant="outline"
+          size="icon"
+          onClick={() => fileInputRef.current?.click()}
+          title="Upload PDF or text file"
+          className="shrink-0"
+        >
+          <Paperclip className="w-4 h-4" />
+        </Button>
         <Input
           value={input}
           onChange={(e) => setInput(e.target.value)}
           onKeyDown={(e) => e.key === "Enter" && !e.shiftKey && sendMessage()}
-          placeholder={selectedSubject !== "all" ? `Ask about ${selectedSubject}...` : "Ask anything about your studies..."}
+          placeholder={selectedSubject !== "all" ? `Ask about ${selectedSubject}...` : "Ask anything or upload a file..."}
           className="flex-1"
         />
-        <Button onClick={sendMessage} disabled={!input.trim() || isTyping} size="icon">
+        <Button onClick={sendMessage} disabled={(!input.trim() && uploadedFiles.length === 0) || isTyping} size="icon">
           <Send className="w-4 h-4" />
         </Button>
       </div>
