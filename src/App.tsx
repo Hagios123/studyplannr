@@ -8,6 +8,7 @@ import { StudyNotificationProvider } from "@/components/StudyNotificationProvide
 import { AuthProvider, useAuth } from "@/hooks/useAuth";
 import { PageTransition } from "@/components/PageTransition";
 import { AnimatePresence } from "framer-motion";
+import { ThemeProvider } from "@/hooks/useTheme";
 import Index from "./pages/Index";
 import Planner from "./pages/Planner";
 import FocusTimer from "./pages/FocusTimer";
