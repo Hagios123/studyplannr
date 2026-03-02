@@ -2,10 +2,12 @@ import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate, useLocation } from "react-router-dom";
 import { AppLayout } from "@/components/layout/AppLayout";
 import { StudyNotificationProvider } from "@/components/StudyNotificationProvider";
 import { AuthProvider, useAuth } from "@/hooks/useAuth";
+import { PageTransition } from "@/components/PageTransition";
+import { AnimatePresence } from "framer-motion";
 import Index from "./pages/Index";
 import Planner from "./pages/Planner";
 import FocusTimer from "./pages/FocusTimer";
@@ -17,6 +19,25 @@ import Auth from "./pages/Auth";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
+
+function AnimatedRoutes() {
+  const location = useLocation();
+
+  return (
+    <AnimatePresence mode="wait">
+      <Routes location={location} key={location.pathname}>
+        <Route path="/" element={<PageTransition><Index /></PageTransition>} />
+        <Route path="/planner" element={<PageTransition><Planner /></PageTransition>} />
+        <Route path="/timer" element={<PageTransition><FocusTimer /></PageTransition>} />
+        <Route path="/flashcards" element={<PageTransition><Flashcards /></PageTransition>} />
+        <Route path="/quiz" element={<PageTransition><Quiz /></PageTransition>} />
+        <Route path="/tutor" element={<PageTransition><Tutor /></PageTransition>} />
+        <Route path="/analytics" element={<PageTransition><Analytics /></PageTransition>} />
+        <Route path="*" element={<PageTransition><NotFound /></PageTransition>} />
+      </Routes>
+    </AnimatePresence>
+  );
+}
 
 function ProtectedRoutes() {
   const { user, loading } = useAuth();
@@ -37,16 +58,7 @@ function ProtectedRoutes() {
   return (
     <StudyNotificationProvider>
       <AppLayout>
-        <Routes>
-          <Route path="/" element={<Index />} />
-          <Route path="/planner" element={<Planner />} />
-          <Route path="/timer" element={<FocusTimer />} />
-          <Route path="/flashcards" element={<Flashcards />} />
-          <Route path="/quiz" element={<Quiz />} />
-          <Route path="/tutor" element={<Tutor />} />
-          <Route path="/analytics" element={<Analytics />} />
-          <Route path="*" element={<NotFound />} />
-        </Routes>
+        <AnimatedRoutes />
       </AppLayout>
     </StudyNotificationProvider>
   );
