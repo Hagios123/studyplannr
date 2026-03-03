@@ -235,7 +235,6 @@ export const useStudyStore = create<StudyStore>((set, get) => ({
     const configs = customConfigs || subjectConfigs;
     const newTasks: StudyTask[] = [];
 
-    // Also register subjects
     const newSubjects = configs.map(c => c.name);
 
     const topicQueue: { subject: string; topic: string; difficulty: Difficulty; customDuration?: number }[] = [];
@@ -247,6 +246,8 @@ export const useStudyStore = create<StudyStore>((set, get) => ({
         }
       }
     }
+
+    if (topicQueue.length === 0) return;
 
     let topicIndex = 0;
 
@@ -265,8 +266,8 @@ export const useStudyStore = create<StudyStore>((set, get) => ({
       let usedMinutes = 0;
       const GAP = 5;
 
-      while (topicIndex < topicQueue.length) {
-        const item = topicQueue[topicIndex];
+      while (usedMinutes < availableMinutes) {
+        const item = topicQueue[topicIndex % topicQueue.length];
         const duration = getDurationForDifficulty(item.difficulty, item.customDuration);
 
         if (usedMinutes + duration > availableMinutes) break;
