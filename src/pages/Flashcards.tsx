@@ -1,6 +1,6 @@
 import { useState, useMemo } from "react";
 import { useStudyStore } from "@/stores/useStudyStore";
-import { Layers, RotateCw, Check, ChevronLeft, ChevronRight, Clock, Sparkles, Loader2, Plus } from "lucide-react";
+import { Layers, RotateCw, Check, ChevronLeft, ChevronRight, Clock, Sparkles, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -8,12 +8,21 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 
+type FlashcardDifficulty = "easy" | "medium" | "hard" | "expert";
+
+const DIFFICULTY_LABELS: Record<FlashcardDifficulty, { label: string; color: string }> = {
+  easy: { label: "Easy", color: "bg-success/10 text-success" },
+  medium: { label: "Medium", color: "bg-accent/10 text-accent" },
+  hard: { label: "Hard", color: "bg-destructive/10 text-destructive" },
+  expert: { label: "Expert", color: "bg-destructive/20 text-destructive" },
+};
+
 export default function Flashcards() {
   const { flashcards, toggleFlashcardMastered, addFlashcard, tasks, subjects, subjectConfigs } = useStudyStore();
   const { toast } = useToast();
   const [currentIndex, setCurrentIndex] = useState(0);
   const [flipped, setFlipped] = useState(false);
-  const [filter, setFilter] = useState<"scheduled" | "all" | "unmastered">("scheduled");
+  const [filter, setFilter] = useState<"scheduled" | "all" | "unmastered">("all");
 
   // AI generation state
   const [genOpen, setGenOpen] = useState(false);
@@ -22,12 +31,15 @@ export default function Flashcards() {
   const [customSubject, setCustomSubject] = useState("");
   const [customTopic, setCustomTopic] = useState("");
   const [genCount, setGenCount] = useState(5);
+  const [genDifficulty, setGenDifficulty] = useState<FlashcardDifficulty>("medium");
   const [generating, setGenerating] = useState(false);
 
   const allSubjects = [...new Set([...subjects, ...subjectConfigs.map(s => s.name)])];
   const selectedConfig = subjectConfigs.find(s => s.name === genSubject);
 
-  // Find the currently active study task based on current time
+  // Only show user-generated flashcards (ids starting with "ai-" or "sched-"), not mocks
+  const userCards = useMemo(() => flashcards.filter(f => f.id.startsWith("ai-") || f.id.startsWith("sched-")), [flashcards]);
+
   const now = new Date();
   const today = now.toISOString().split("T")[0];
   const currentTime = `${String(now.getHours()).padStart(2, "0")}:${String(now.getMinutes()).padStart(2, "0")}`;
@@ -48,15 +60,14 @@ export default function Flashcards() {
 
   const filtered = useMemo(() => {
     if (filter === "scheduled" && activeTask) {
-      const matching = flashcards.filter(
+      return userCards.filter(
         (f) => f.subject === activeTask.subject ||
                f.topic?.toLowerCase().includes(activeTask.topic.toLowerCase().split(" ")[0])
       );
-      return matching.length > 0 ? matching : flashcards.filter((f) => !f.mastered);
     }
-    if (filter === "unmastered") return flashcards.filter((f) => !f.mastered);
-    return flashcards;
-  }, [filter, activeTask, flashcards]);
+    if (filter === "unmastered") return userCards.filter((f) => !f.mastered);
+    return userCards;
+  }, [filter, activeTask, userCards]);
 
   const card = filtered[currentIndex];
 
@@ -76,6 +87,7 @@ export default function Flashcards() {
           topic: effectiveTopic,
           count: genCount,
           type: "flashcards",
+          difficulty: genDifficulty,
         },
       });
       if (error) throw error;
@@ -123,7 +135,7 @@ export default function Flashcards() {
             <Layers className="w-5 h-5 md:w-6 md:h-6 text-primary" /> Flashcards
           </h1>
           <p className="text-muted-foreground text-xs md:text-sm mt-1">
-            {filtered.length} cards · {flashcards.filter((f) => f.mastered).length} mastered
+            {filtered.length} cards · {userCards.filter((f) => f.mastered).length} mastered
           </p>
         </div>
         <div className="flex gap-2 flex-wrap">
@@ -169,8 +181,28 @@ export default function Flashcards() {
                 )}
 
                 <div className="flex items-center gap-3">
-                  <label className="text-sm text-muted-foreground">Number of cards:</label>
+                  <label className="text-sm text-muted-foreground">Cards:</label>
                   <Input type="number" min={1} max={20} value={genCount} onChange={(e) => setGenCount(Number(e.target.value))} className="w-20" />
+                </div>
+
+                {/* Difficulty */}
+                <div className="space-y-2">
+                  <label className="text-sm font-medium">Difficulty</label>
+                  <div className="grid grid-cols-4 gap-1.5">
+                    {(Object.keys(DIFFICULTY_LABELS) as FlashcardDifficulty[]).map((d) => (
+                      <button
+                        key={d}
+                        onClick={() => setGenDifficulty(d)}
+                        className={`text-xs font-medium px-2 py-2 rounded-lg border transition-all ${
+                          genDifficulty === d
+                            ? `${DIFFICULTY_LABELS[d].color} border-current`
+                            : "border-border bg-secondary/50 text-muted-foreground hover:border-primary/30"
+                        }`}
+                      >
+                        {DIFFICULTY_LABELS[d].label}
+                      </button>
+                    ))}
+                  </div>
                 </div>
 
                 <Button onClick={generateFlashcards} disabled={!effectiveSubject || generating} className="w-full gap-2">
@@ -210,12 +242,14 @@ export default function Flashcards() {
 
       {filtered.length === 0 ? (
         <div className="text-center py-20 text-muted-foreground">
-          <Check className="w-12 h-12 mx-auto mb-3 text-success" />
+          <Layers className="w-12 h-12 mx-auto mb-3 opacity-30" />
           <p className="font-display font-semibold text-lg">
-            {filter === "scheduled" ? "No flashcards for the current topic" : "All cards mastered!"}
+            {userCards.length === 0 ? "No flashcards yet" : filter === "scheduled" ? "No flashcards for the current topic" : "All cards mastered!"}
           </p>
           <p className="text-sm mt-1">
-            {filter === "scheduled" ? "Use 'AI Generate' to create cards for your subjects, or switch to 'All'." : "Great job! Switch to \"All\" to review again."}
+            {userCards.length === 0
+              ? "Click 'AI Generate' to create flashcards for your subjects."
+              : filter === "scheduled" ? "Use 'AI Generate' to create cards for your subjects, or switch to 'All'." : "Great job! Switch to \"All\" to review again."}
           </p>
         </div>
       ) : (
