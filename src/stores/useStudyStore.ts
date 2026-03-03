@@ -153,18 +153,7 @@ const mockFlashcards: Flashcard[] = [];
 
 const mockQuiz: QuizQuestion[] = [];
 
-const mockSessions: StudySession[] = [
-  { id: "s1", date: "2026-02-20", subject: "Mathematics", duration: 45, type: "pomodoro" },
-  { id: "s2", date: "2026-02-20", subject: "Physics", duration: 60, type: "regular" },
-  { id: "s3", date: "2026-02-21", subject: "Computer Science", duration: 50, type: "pomodoro" },
-  { id: "s4", date: "2026-02-22", subject: "Mathematics", duration: 45, type: "pomodoro" },
-  { id: "s5", date: "2026-02-22", subject: "Physics", duration: 30, type: "pomodoro" },
-  { id: "s6", date: "2026-02-23", subject: "Computer Science", duration: 60, type: "regular" },
-  { id: "s7", date: "2026-02-23", subject: "Mathematics", duration: 45, type: "pomodoro" },
-  { id: "s8", date: "2026-02-24", subject: "Physics", duration: 55, type: "pomodoro" },
-  { id: "s9", date: "2026-02-24", subject: "Computer Science", duration: 40, type: "pomodoro" },
-  { id: "s10", date: "2026-02-24", subject: "Mathematics", duration: 50, type: "regular" },
-];
+const mockSessions: StudySession[] = [];
 
 export const useStudyStore = create<StudyStore>((set, get) => ({
   tasks: [],
