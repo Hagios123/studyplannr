@@ -1,5 +1,6 @@
 import { AppSidebar } from "./AppSidebar";
 import { OnboardingTutorial } from "@/components/OnboardingTutorial";
+import { FloatingTimer } from "@/components/FloatingTimer";
 
 export function AppLayout({ children }: { children: React.ReactNode }) {
   return (
@@ -10,6 +11,7 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
           {children}
         </div>
       </main>
+      <FloatingTimer />
       <OnboardingTutorial />
     </div>
   );
