@@ -163,7 +163,7 @@ const Index = () => {
             Quick Actions
           </h2>
           <div className="space-y-2">
-            <QuickActionCard icon={BookOpen} title="Start Focus Session" description="25 min Pomodoro timer" to="/timer" variant="primary" />
+            <QuickActionCard icon={BookOpen} title="Study Planner" description="Plan your sessions" to="/planner" variant="primary" />
             <QuickActionCard icon={Sparkles} title="Ask AI Tutor" description="Get help with any topic" to="/tutor" variant="accent" />
             <QuickActionCard icon={CheckCircle2} title="Review Flashcards" description={`${useStudyStore.getState().flashcards.filter((f) => !f.mastered).length} cards to review`} to="/flashcards" />
             <QuickActionCard icon={TrendingUp} title="View Analytics" description="Track your progress" to="/analytics" />
