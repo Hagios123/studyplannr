@@ -151,11 +151,7 @@ const defaultFreeTimeSlots: FreeTimeSlot[] = [
 
 const mockFlashcards: Flashcard[] = [];
 
-const mockQuiz: QuizQuestion[] = [
-  { id: "q1", subject: "Mathematics", question: "Which of the following is true about eigenvalues of a symmetric matrix?", options: ["They are always complex", "They are always real", "They are always zero", "They don't exist"], correctIndex: 1 },
-  { id: "q2", subject: "Physics", question: "What does the wave function Ψ represent?", options: ["The exact position of a particle", "The probability amplitude", "The particle's velocity", "The energy level"], correctIndex: 1 },
-  { id: "q3", subject: "Computer Science", question: "What is the main advantage of a B-tree over a binary search tree?", options: ["Simpler implementation", "Better cache performance and fewer disk reads", "Always faster insertions", "Uses less memory"], correctIndex: 1 },
-];
+const mockQuiz: QuizQuestion[] = [];
 
 const mockSessions: StudySession[] = [
   { id: "s1", date: "2026-02-20", subject: "Mathematics", duration: 45, type: "pomodoro" },
