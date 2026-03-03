@@ -149,12 +149,7 @@ const defaultFreeTimeSlots: FreeTimeSlot[] = [
   { day: "Sunday", startTime: "10:00", endTime: "14:00" },
 ];
 
-const mockFlashcards: Flashcard[] = [
-  { id: "f1", subject: "Mathematics", topic: "Eigenvalues", front: "What is an eigenvalue?", back: "A scalar λ such that Av = λv for a nonzero vector v and matrix A.", mastered: false },
-  { id: "f2", subject: "Physics", topic: "Wave Functions", front: "What is the Schrödinger equation?", back: "iℏ ∂/∂t |Ψ⟩ = Ĥ |Ψ⟩ — describes how the quantum state of a system changes over time.", mastered: false },
-  { id: "f3", subject: "Computer Science", topic: "B-Trees", front: "What is the time complexity of searching a B-tree?", back: "O(log n) — balanced tree structure ensures logarithmic search time.", mastered: true },
-  { id: "f4", subject: "Mathematics", topic: "Integration", front: "What is integration by parts formula?", back: "∫u dv = uv − ∫v du", mastered: false },
-];
+const mockFlashcards: Flashcard[] = [];
 
 const mockQuiz: QuizQuestion[] = [
   { id: "q1", subject: "Mathematics", question: "Which of the following is true about eigenvalues of a symmetric matrix?", options: ["They are always complex", "They are always real", "They are always zero", "They don't exist"], correctIndex: 1 },
