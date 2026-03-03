@@ -149,31 +149,11 @@ const defaultFreeTimeSlots: FreeTimeSlot[] = [
   { day: "Sunday", startTime: "10:00", endTime: "14:00" },
 ];
 
-const mockFlashcards: Flashcard[] = [
-  { id: "f1", subject: "Mathematics", topic: "Eigenvalues", front: "What is an eigenvalue?", back: "A scalar λ such that Av = λv for a nonzero vector v and matrix A.", mastered: false },
-  { id: "f2", subject: "Physics", topic: "Wave Functions", front: "What is the Schrödinger equation?", back: "iℏ ∂/∂t |Ψ⟩ = Ĥ |Ψ⟩ — describes how the quantum state of a system changes over time.", mastered: false },
-  { id: "f3", subject: "Computer Science", topic: "B-Trees", front: "What is the time complexity of searching a B-tree?", back: "O(log n) — balanced tree structure ensures logarithmic search time.", mastered: true },
-  { id: "f4", subject: "Mathematics", topic: "Integration", front: "What is integration by parts formula?", back: "∫u dv = uv − ∫v du", mastered: false },
-];
+const mockFlashcards: Flashcard[] = [];
 
-const mockQuiz: QuizQuestion[] = [
-  { id: "q1", subject: "Mathematics", question: "Which of the following is true about eigenvalues of a symmetric matrix?", options: ["They are always complex", "They are always real", "They are always zero", "They don't exist"], correctIndex: 1 },
-  { id: "q2", subject: "Physics", question: "What does the wave function Ψ represent?", options: ["The exact position of a particle", "The probability amplitude", "The particle's velocity", "The energy level"], correctIndex: 1 },
-  { id: "q3", subject: "Computer Science", question: "What is the main advantage of a B-tree over a binary search tree?", options: ["Simpler implementation", "Better cache performance and fewer disk reads", "Always faster insertions", "Uses less memory"], correctIndex: 1 },
-];
+const mockQuiz: QuizQuestion[] = [];
 
-const mockSessions: StudySession[] = [
-  { id: "s1", date: "2026-02-20", subject: "Mathematics", duration: 45, type: "pomodoro" },
-  { id: "s2", date: "2026-02-20", subject: "Physics", duration: 60, type: "regular" },
-  { id: "s3", date: "2026-02-21", subject: "Computer Science", duration: 50, type: "pomodoro" },
-  { id: "s4", date: "2026-02-22", subject: "Mathematics", duration: 45, type: "pomodoro" },
-  { id: "s5", date: "2026-02-22", subject: "Physics", duration: 30, type: "pomodoro" },
-  { id: "s6", date: "2026-02-23", subject: "Computer Science", duration: 60, type: "regular" },
-  { id: "s7", date: "2026-02-23", subject: "Mathematics", duration: 45, type: "pomodoro" },
-  { id: "s8", date: "2026-02-24", subject: "Physics", duration: 55, type: "pomodoro" },
-  { id: "s9", date: "2026-02-24", subject: "Computer Science", duration: 40, type: "pomodoro" },
-  { id: "s10", date: "2026-02-24", subject: "Mathematics", duration: 50, type: "regular" },
-];
+const mockSessions: StudySession[] = [];
 
 export const useStudyStore = create<StudyStore>((set, get) => ({
   tasks: [],
@@ -255,7 +235,6 @@ export const useStudyStore = create<StudyStore>((set, get) => ({
     const configs = customConfigs || subjectConfigs;
     const newTasks: StudyTask[] = [];
 
-    // Also register subjects
     const newSubjects = configs.map(c => c.name);
 
     const topicQueue: { subject: string; topic: string; difficulty: Difficulty; customDuration?: number }[] = [];
@@ -267,6 +246,8 @@ export const useStudyStore = create<StudyStore>((set, get) => ({
         }
       }
     }
+
+    if (topicQueue.length === 0) return;
 
     let topicIndex = 0;
 
@@ -285,8 +266,8 @@ export const useStudyStore = create<StudyStore>((set, get) => ({
       let usedMinutes = 0;
       const GAP = 5;
 
-      while (topicIndex < topicQueue.length) {
-        const item = topicQueue[topicIndex];
+      while (usedMinutes < availableMinutes) {
+        const item = topicQueue[topicIndex % topicQueue.length];
         const duration = getDurationForDifficulty(item.difficulty, item.customDuration);
 
         if (usedMinutes + duration > availableMinutes) break;

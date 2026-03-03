@@ -11,7 +11,6 @@ import { AnimatePresence } from "framer-motion";
 import { ThemeProvider } from "@/hooks/useTheme";
 import Index from "./pages/Index";
 import Planner from "./pages/Planner";
-import FocusTimer from "./pages/FocusTimer";
 import Flashcards from "./pages/Flashcards";
 import Quiz from "./pages/Quiz";
 import Tutor from "./pages/Tutor";
@@ -29,7 +28,6 @@ function AnimatedRoutes() {
       <Routes location={location} key={location.pathname}>
         <Route path="/" element={<PageTransition><Index /></PageTransition>} />
         <Route path="/planner" element={<PageTransition><Planner /></PageTransition>} />
-        <Route path="/timer" element={<PageTransition><FocusTimer /></PageTransition>} />
         <Route path="/flashcards" element={<PageTransition><Flashcards /></PageTransition>} />
         <Route path="/quiz" element={<PageTransition><Quiz /></PageTransition>} />
         <Route path="/tutor" element={<PageTransition><Tutor /></PageTransition>} />
