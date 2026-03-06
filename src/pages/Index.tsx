@@ -88,6 +88,8 @@ const Index = () => {
   const { tasks, sessions } = useStudyStore();
   const { profile, signOut } = useAuth();
 
+  const hour = new Date().getHours();
+  const greeting = hour < 12 ? "Good morning" : hour < 17 ? "Good afternoon" : hour < 21 ? "Good evening" : "Good night";
   const today = new Date().toISOString().split("T")[0];
   const todaysTasks = tasks.filter((t) => t.date === today);
   const completedToday = todaysTasks.filter((t) => t.status === "completed").length;
