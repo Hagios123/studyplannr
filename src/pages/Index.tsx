@@ -88,6 +88,8 @@ const Index = () => {
   const { tasks, sessions } = useStudyStore();
   const { profile, signOut } = useAuth();
 
+  const hour = new Date().getHours();
+  const greeting = hour < 12 ? "Good morning" : hour < 17 ? "Good afternoon" : hour < 21 ? "Good evening" : "Good night";
   const today = new Date().toISOString().split("T")[0];
   const todaysTasks = tasks.filter((t) => t.date === today);
   const completedToday = todaysTasks.filter((t) => t.status === "completed").length;
@@ -103,7 +105,7 @@ const Index = () => {
       <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-3">
         <div>
           <h1 className="text-2xl md:text-3xl font-display font-bold tracking-tight">
-            Good evening, <span className="text-gradient-primary">{displayName}</span>
+            {greeting}, <span className="text-gradient-primary">{displayName}</span>
           </h1>
           <p className="text-muted-foreground text-sm md:text-base mt-1">
             You have {todaysTasks.filter((t) => t.status === "pending").length} tasks remaining today.
