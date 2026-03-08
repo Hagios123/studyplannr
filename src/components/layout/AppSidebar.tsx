@@ -20,6 +20,10 @@ import {
   Type,
   Eye,
   Zap,
+  FileText,
+  Heart,
+  Library,
+  Users,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useTheme } from "@/hooks/useTheme";
@@ -29,13 +33,29 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 const ONBOARDING_KEY = "novastudy_onboarding_complete";
 
-const navItems = [
+const studyItems = [
   { to: "/", icon: LayoutDashboard, label: "Dashboard" },
   { to: "/planner", icon: CalendarDays, label: "Planner" },
   { to: "/flashcards", icon: Layers, label: "Cards" },
   { to: "/quiz", icon: HelpCircle, label: "Quiz" },
   { to: "/tutor", icon: MessageSquare, label: "Tutor" },
+];
+
+const toolItems = [
+  { to: "/notes", icon: FileText, label: "Notes" },
+  { to: "/habits", icon: Heart, label: "Habits" },
+  { to: "/resources", icon: Library, label: "Library" },
+  { to: "/groups", icon: Users, label: "Groups" },
   { to: "/analytics", icon: BarChart3, label: "Stats" },
+];
+
+// Mobile nav shows top items
+const mobileItems = [
+  { to: "/", icon: LayoutDashboard, label: "Home" },
+  { to: "/planner", icon: CalendarDays, label: "Plan" },
+  { to: "/flashcards", icon: Layers, label: "Cards" },
+  { to: "/tutor", icon: MessageSquare, label: "Tutor" },
+  { to: "/notes", icon: FileText, label: "Notes" },
 ];
 
 const modeOptions = [
@@ -72,55 +92,67 @@ export function AppSidebar() {
     window.location.reload();
   };
 
+  const renderNavItem = (item: { to: string; icon: any; label: string }) => {
+    const isActive = location.pathname === item.to;
+    return (
+      <NavLink
+        key={item.to}
+        to={item.to}
+        className={cn(
+          "flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-all duration-200 group",
+          isActive
+            ? "bg-primary/10 text-primary glow-primary"
+            : "text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
+        )}
+      >
+        <item.icon className={cn("w-4.5 h-4.5 shrink-0", isActive && "text-primary")} />
+        {!collapsed && <span className="whitespace-nowrap">{item.label}</span>}
+      </NavLink>
+    );
+  };
+
   return (
     <>
       {/* Desktop sidebar */}
       <aside
         className={cn(
           "hidden md:flex flex-col h-screen bg-sidebar border-r border-sidebar-border transition-all duration-300 shrink-0",
-          collapsed ? "w-[68px]" : "w-[240px]"
+          collapsed ? "w-[68px]" : "w-[220px]"
         )}
       >
-        <div className="flex items-center gap-3 px-4 h-16 border-b border-sidebar-border">
-          <div className="w-8 h-8 rounded-lg bg-primary/20 flex items-center justify-center glow-primary shrink-0">
-            <Sparkles className="w-4 h-4 text-primary" />
+        <div className="flex items-center gap-3 px-4 h-14 border-b border-sidebar-border">
+          <div className="w-7 h-7 rounded-lg bg-primary/20 flex items-center justify-center glow-primary shrink-0">
+            <Sparkles className="w-3.5 h-3.5 text-primary" />
           </div>
           {!collapsed && (
-            <span className="font-display font-bold text-lg text-gradient-primary whitespace-nowrap">
+            <span className="font-display font-bold text-base text-gradient-primary whitespace-nowrap">
               Study AI
             </span>
           )}
         </div>
 
-        <nav className="flex-1 py-4 px-2 space-y-1 overflow-y-auto">
-          {navItems.map((item) => {
-            const isActive = location.pathname === item.to;
-            return (
-              <NavLink
-                key={item.to}
-                to={item.to}
-                className={cn(
-                  "flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all duration-200 group",
-                  isActive
-                    ? "bg-primary/10 text-primary glow-primary"
-                    : "text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
-                )}
-              >
-                <item.icon className={cn("w-5 h-5 shrink-0", isActive && "text-primary")} />
-                {!collapsed && <span className="whitespace-nowrap">{item.label}</span>}
-              </NavLink>
-            );
-          })}
+        <nav className="flex-1 py-3 px-2 space-y-4 overflow-y-auto">
+          {/* Study section */}
+          <div className="space-y-0.5">
+            {!collapsed && <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider px-3 mb-1.5">Study</p>}
+            {studyItems.map(renderNavItem)}
+          </div>
+
+          {/* Tools section */}
+          <div className="space-y-0.5">
+            {!collapsed && <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider px-3 mb-1.5">Tools</p>}
+            {toolItems.map(renderNavItem)}
+          </div>
         </nav>
 
         <div className="p-2 border-t border-sidebar-border space-y-1">
           <Dialog open={settingsOpen} onOpenChange={setSettingsOpen}>
             <DialogTrigger asChild>
               <button className={cn(
-                "w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all duration-200 text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground",
+                "w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-all duration-200 text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground",
                 collapsed && "justify-center"
               )}>
-                <Settings className="w-5 h-5 shrink-0" />
+                <Settings className="w-4.5 h-4.5 shrink-0" />
                 {!collapsed && <span>Settings</span>}
               </button>
             </DialogTrigger>
@@ -141,7 +173,6 @@ export function AppSidebar() {
                 </TabsList>
 
                 <TabsContent value="appearance" className="space-y-6 pt-2">
-                  {/* Appearance mode */}
                   <div className="space-y-3">
                     <label className="text-sm font-semibold flex items-center gap-2">
                       <Sun className="w-4 h-4 text-muted-foreground" /> Appearance
@@ -165,7 +196,6 @@ export function AppSidebar() {
                     </div>
                   </div>
 
-                  {/* Color theme */}
                   <div className="space-y-3">
                     <label className="text-sm font-semibold flex items-center gap-2">
                       <Palette className="w-4 h-4 text-muted-foreground" /> Color Theme
@@ -189,7 +219,6 @@ export function AppSidebar() {
                     </div>
                   </div>
 
-                  {/* Replay tutorial */}
                   <div className="pt-2 border-t border-border">
                     <button
                       onClick={replayTutorial}
@@ -205,7 +234,6 @@ export function AppSidebar() {
                 </TabsContent>
 
                 <TabsContent value="accessibility" className="space-y-5 pt-2">
-                  {/* Font Size */}
                   <div className="space-y-3">
                     <label className="text-sm font-semibold flex items-center gap-2">
                       <Type className="w-4 h-4 text-muted-foreground" /> Text Size
@@ -234,7 +262,6 @@ export function AppSidebar() {
                     </div>
                   </div>
 
-                  {/* Toggle options */}
                   <div className="space-y-3">
                     <div className="flex items-center justify-between p-3 rounded-xl border border-border bg-secondary/50">
                       <div className="flex items-center gap-3">
@@ -286,7 +313,7 @@ export function AppSidebar() {
       {/* Mobile bottom navigation */}
       <nav className="md:hidden fixed bottom-0 left-0 right-0 z-50 bg-sidebar border-t border-sidebar-border safe-area-bottom">
         <div className="flex items-center justify-around px-1 py-1.5">
-          {[...navItems, { to: "#settings", icon: Settings, label: "More" }].map((item) => {
+          {[...mobileItems, { to: "#settings", icon: Settings, label: "More" }].map((item) => {
             if (item.to === "#settings") {
               return (
                 <button

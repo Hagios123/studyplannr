@@ -18,6 +18,10 @@ import {
   BarChart3,
   Search,
   BookOpen,
+  FileText,
+  Heart,
+  Library,
+  Users,
 } from "lucide-react";
 
 const pages = [
@@ -27,6 +31,10 @@ const pages = [
   { name: "Quiz", to: "/quiz", icon: HelpCircle },
   { name: "AI Tutor", to: "/tutor", icon: MessageSquare },
   { name: "Analytics", to: "/analytics", icon: BarChart3 },
+  { name: "Notes", to: "/notes", icon: FileText },
+  { name: "Habits", to: "/habits", icon: Heart },
+  { name: "Resources", to: "/resources", icon: Library },
+  { name: "Study Groups", to: "/groups", icon: Users },
 ];
 
 export function CommandPalette() {
