@@ -61,6 +61,9 @@ export function FloatingTimer() {
               duration: focusMinutes,
               type: "pomodoro",
             });
+            addXP("session_complete", "Completed a Pomodoro session");
+            incrementStat("sessionsCompleted");
+            recordStreak(new Date().toISOString().split("T")[0]);
             setPhase("break");
             return breakDuration;
           } else {

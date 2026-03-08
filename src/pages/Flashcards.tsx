@@ -20,6 +20,7 @@ const DIFFICULTY_LABELS: Record<FlashcardDifficulty, { label: string; color: str
 
 export default function Flashcards() {
   const { flashcards, toggleFlashcardMastered, addFlashcard, tasks, subjects, subjectConfigs } = useStudyStore();
+  const { addXP, incrementStat, recordStreak } = useGamificationStore();
   const { toast } = useToast();
   const [currentIndex, setCurrentIndex] = useState(0);
   const [flipped, setFlipped] = useState(false);
