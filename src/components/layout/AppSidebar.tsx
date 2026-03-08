@@ -104,19 +104,33 @@ export function AppSidebar() {
   const [playing, setPlaying] = useState<string | null>(null);
   const [volume, setVolume] = useState(50);
   const audioRef = useRef<HTMLAudioElement | null>(null);
+  const fileInputRef = useRef<HTMLInputElement | null>(null);
+  const [customSounds, setCustomSounds] = useState<{ id: string; label: string; url: string; path: string }[]>([]);
+  const [uploading, setUploading] = useState(false);
+  const { user } = useAuth();
+
+  // Load custom sounds from storage
+  useEffect(() => {
+    if (!user) return;
+    const loadCustomSounds = async () => {
+      const { data } = await supabase.storage.from("custom-sounds").list(user.id, { sortBy: { column: "created_at", order: "desc" } });
+      if (data) {
+        setCustomSounds(data.map((f) => {
+          const { data: urlData } = supabase.storage.from("custom-sounds").getPublicUrl(`${user.id}/${f.name}`);
+          return { id: `custom-${f.name}`, label: f.name.replace(/\.[^.]+$/, ""), url: urlData.publicUrl, path: `${user.id}/${f.name}` };
+        }));
+      }
+    };
+    loadCustomSounds();
+  }, [user]);
 
   useEffect(() => {
     return () => {
-      if (audioRef.current) {
-        audioRef.current.pause();
-        audioRef.current = null;
-      }
+      if (audioRef.current) { audioRef.current.pause(); audioRef.current = null; }
     };
   }, []);
 
-  const playTrack = (trackId: string) => {
-    const track = AMBIENT_TRACKS.find((t) => t.id === trackId);
-    if (!track) return;
+  const playTrack = (trackId: string, url: string) => {
     if (playing === trackId) {
       audioRef.current?.pause();
       audioRef.current = null;
@@ -124,12 +138,35 @@ export function AppSidebar() {
       return;
     }
     if (audioRef.current) audioRef.current.pause();
-    const audio = new Audio(track.url);
+    const audio = new Audio(url);
     audio.loop = true;
     audio.volume = volume / 100;
     audio.play().catch(() => {});
     audioRef.current = audio;
     setPlaying(trackId);
+  };
+
+  const handleUploadSound = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file || !user) return;
+    if (!file.type.startsWith("audio/")) { toast.error("Please upload an audio file (MP3, WAV, etc.)"); return; }
+    if (file.size > 20 * 1024 * 1024) { toast.error("File must be under 20MB"); return; }
+    setUploading(true);
+    const fileName = `${Date.now()}-${file.name}`;
+    const { error } = await supabase.storage.from("custom-sounds").upload(`${user.id}/${fileName}`, file);
+    if (error) { toast.error("Upload failed"); setUploading(false); return; }
+    const { data: urlData } = supabase.storage.from("custom-sounds").getPublicUrl(`${user.id}/${fileName}`);
+    setCustomSounds((prev) => [{ id: `custom-${fileName}`, label: file.name.replace(/\.[^.]+$/, ""), url: urlData.publicUrl, path: `${user.id}/${fileName}` }, ...prev]);
+    toast.success("Sound uploaded!");
+    setUploading(false);
+    if (fileInputRef.current) fileInputRef.current.value = "";
+  };
+
+  const deleteCustomSound = async (sound: { id: string; path: string }) => {
+    if (playing === sound.id) { audioRef.current?.pause(); audioRef.current = null; setPlaying(null); }
+    await supabase.storage.from("custom-sounds").remove([sound.path]);
+    setCustomSounds((prev) => prev.filter((s) => s.id !== sound.id));
+    toast.success("Sound removed");
   };
 
   useEffect(() => {
