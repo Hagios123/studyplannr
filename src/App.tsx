@@ -15,6 +15,10 @@ import Flashcards from "./pages/Flashcards";
 import Quiz from "./pages/Quiz";
 import Tutor from "./pages/Tutor";
 import Analytics from "./pages/Analytics";
+import Notes from "./pages/Notes";
+import Habits from "./pages/Habits";
+import Resources from "./pages/Resources";
+import Groups from "./pages/Groups";
 import Auth from "./pages/Auth";
 import NotFound from "./pages/NotFound";
 
@@ -32,6 +36,10 @@ function AnimatedRoutes() {
         <Route path="/quiz" element={<PageTransition><Quiz /></PageTransition>} />
         <Route path="/tutor" element={<PageTransition><Tutor /></PageTransition>} />
         <Route path="/analytics" element={<PageTransition><Analytics /></PageTransition>} />
+        <Route path="/notes" element={<PageTransition><Notes /></PageTransition>} />
+        <Route path="/habits" element={<PageTransition><Habits /></PageTransition>} />
+        <Route path="/resources" element={<PageTransition><Resources /></PageTransition>} />
+        <Route path="/groups" element={<PageTransition><Groups /></PageTransition>} />
         <Route path="*" element={<PageTransition><NotFound /></PageTransition>} />
       </Routes>
     </AnimatePresence>
