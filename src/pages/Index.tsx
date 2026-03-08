@@ -1,5 +1,6 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { useStudyStore } from "@/stores/useStudyStore";
+import { useGamificationStore } from "@/stores/useGamificationStore";
 import { useAuth } from "@/hooks/useAuth";
 import {
   CalendarDays,
@@ -15,6 +16,9 @@ import {
   Download,
   Target,
   MessageSquareText,
+  Trophy,
+  Star,
+  Zap,
 } from "lucide-react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -22,6 +26,7 @@ import { Confetti } from "@/components/Confetti";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
+import { Progress } from "@/components/ui/progress";
 
 const TIPS = [
   "Use the Pomodoro technique: 25 min focus, 5 min break. Your brain retains more with spaced intervals.",
