@@ -280,6 +280,67 @@
     --shadow-glow: 0 0 30px -5px hsl(220, 15%, 45%, 0.15);
     --shadow-neon: 0 0 10px hsl(220, 15%, 45%, 0.3), 0 0 40px hsl(220, 15%, 45%, 0.1);
   }
+
+  /* ========== DARK — PURPLE ========== */
+  .dark[data-color-theme="purple"] {
+    --background: 270 30% 4%;
+    --foreground: 270 20% 92%;
+    --card: 270 25% 7%;
+    --card-foreground: 270 20% 92%;
+    --popover: 270 25% 7%;
+    --popover-foreground: 270 20% 92%;
+    --primary: 270 100% 60%;
+    --primary-foreground: 270 30% 4%;
+    --secondary: 270 20% 11%;
+    --secondary-foreground: 270 15% 85%;
+    --muted: 270 20% 11%;
+    --muted-foreground: 270 12% 48%;
+    --accent: 38 92% 55%;
+    --accent-foreground: 270 30% 4%;
+    --destructive: 0 80% 55%;
+    --destructive-foreground: 270 20% 98%;
+    --border: 270 18% 14%;
+    --input: 270 18% 14%;
+    --ring: 270 100% 60%;
+    --sidebar-background: 270 30% 5%;
+    --sidebar-foreground: 270 15% 68%;
+    --sidebar-primary: 270 100% 60%;
+    --sidebar-primary-foreground: 270 30% 4%;
+    --sidebar-accent: 270 20% 9%;
+    --sidebar-accent-foreground: 270 15% 88%;
+    --sidebar-border: 270 18% 11%;
+    --sidebar-ring: 270 100% 60%;
+    --success: 152 60% 45%;
+    --success-foreground: 270 30% 4%;
+    --warning: 38 92% 55%;
+    --warning-foreground: 270 30% 4%;
+    --chart-1: 270 100% 60%;
+    --chart-2: 38 92% 55%;
+    --chart-3: 310 80% 55%;
+    --chart-4: 200 70% 55%;
+    --chart-5: 340 70% 55%;
+    --neon-glow: 270 100% 60%;
+    --gradient-primary: linear-gradient(135deg, hsl(270, 100%, 60%), hsl(300, 80%, 55%));
+    --gradient-accent: linear-gradient(135deg, hsl(38, 92%, 55%), hsl(25, 95%, 55%));
+    --shadow-glow: 0 0 30px -5px hsl(270, 100%, 60%, 0.2);
+    --shadow-neon: 0 0 10px hsl(270, 100%, 60%, 0.4), 0 0 40px hsl(270, 100%, 60%, 0.15);
+  }
+
+  /* Light mode purple */
+  :root[data-color-theme="purple"],
+  .light[data-color-theme="purple"] {
+    --primary: 270 72% 50%;
+    --primary-foreground: 0 0% 100%;
+    --ring: 270 72% 50%;
+    --sidebar-primary: 270 72% 50%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-ring: 270 72% 50%;
+    --chart-1: 270 72% 50%;
+    --neon-glow: 270 72% 50%;
+    --gradient-primary: linear-gradient(135deg, hsl(270, 72%, 50%), hsl(300, 65%, 48%));
+    --shadow-glow: 0 0 30px -5px hsl(270, 72%, 50%, 0.15);
+    --shadow-neon: 0 0 10px hsl(270, 72%, 50%, 0.3), 0 0 40px hsl(270, 72%, 50%, 0.1);
+  }
 }
 
 @layer base {
