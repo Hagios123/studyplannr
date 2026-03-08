@@ -6,7 +6,7 @@ interface AuthContext {
   user: User | null;
   session: Session | null;
   loading: boolean;
-  profile: { username: string; display_name: string | null } | null;
+  profile: { username: string; display_name: string | null; bio?: string; avatar_url?: string | null } | null;
   signOut: () => Promise<void>;
 }
 
