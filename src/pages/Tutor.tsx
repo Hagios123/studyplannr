@@ -266,7 +266,7 @@ export default function Tutor() {
             <div className="bg-card border border-border rounded-2xl rounded-bl-md px-5 py-3">
               <div className="flex items-center gap-1.5 mb-2">
                 <Sparkles className="w-3.5 h-3.5 text-accent" />
-                <span className="text-xs text-accent font-medium">Nova</span>
+                <span className="text-xs text-accent font-medium">Study AI</span>
               </div>
               <div className="flex gap-1">
                 <span className="w-2 h-2 bg-muted-foreground rounded-full animate-bounce" style={{ animationDelay: "0ms" }} />
