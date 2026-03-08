@@ -3,7 +3,6 @@ import { NavLink, useLocation } from "react-router-dom";
 import {
   LayoutDashboard,
   CalendarDays,
-  Timer,
   Layers,
   HelpCircle,
   MessageSquare,
@@ -17,10 +16,16 @@ import {
   Monitor,
   BookOpen,
   Palette,
+  Accessibility,
+  Type,
+  Eye,
+  Zap,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useTheme } from "@/hooks/useTheme";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Switch } from "@/components/ui/switch";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 const ONBOARDING_KEY = "novastudy_onboarding_complete";
 
@@ -46,11 +51,21 @@ const colorOptions = [
   { value: "grey" as const, label: "Steel Grey", swatch: "bg-[hsl(220,15%,60%)]" },
 ];
 
+const fontSizeOptions = [
+  { value: "normal" as const, label: "Normal", preview: "Aa" },
+  { value: "large" as const, label: "Large", preview: "Aa" },
+  { value: "xl" as const, label: "Extra Large", preview: "Aa" },
+];
+
 export function AppSidebar() {
   const [collapsed, setCollapsed] = useState(false);
   const [settingsOpen, setSettingsOpen] = useState(false);
   const location = useLocation();
-  const { mode, setMode, colorTheme, setColorTheme } = useTheme();
+  const {
+    mode, setMode, colorTheme, setColorTheme,
+    fontSize, setFontSize, reducedMotion, setReducedMotion,
+    highContrast, setHighContrast, dyslexicFont, setDyslexicFont,
+  } = useTheme();
 
   const replayTutorial = () => {
     localStorage.removeItem(ONBOARDING_KEY);
@@ -99,7 +114,6 @@ export function AppSidebar() {
         </nav>
 
         <div className="p-2 border-t border-sidebar-border space-y-1">
-          {/* Settings button */}
           <Dialog open={settingsOpen} onOpenChange={setSettingsOpen}>
             <DialogTrigger asChild>
               <button className={cn(
@@ -110,75 +124,153 @@ export function AppSidebar() {
                 {!collapsed && <span>Settings</span>}
               </button>
             </DialogTrigger>
-            <DialogContent className="max-w-sm">
+            <DialogContent className="max-w-md max-h-[85vh] overflow-y-auto">
               <DialogHeader>
                 <DialogTitle className="flex items-center gap-2">
                   <Settings className="w-5 h-5 text-primary" /> Settings
                 </DialogTitle>
               </DialogHeader>
-              <div className="space-y-6 pt-2">
-                {/* Appearance mode */}
-                <div className="space-y-3">
-                  <label className="text-sm font-semibold flex items-center gap-2">
-                    <Sun className="w-4 h-4 text-muted-foreground" /> Appearance
-                  </label>
-                  <div className="grid grid-cols-3 gap-2">
-                    {modeOptions.map((opt) => (
-                      <button
-                        key={opt.value}
-                        onClick={() => setMode(opt.value)}
-                        className={cn(
-                          "flex flex-col items-center gap-1.5 p-3 rounded-xl border text-xs font-medium transition-all duration-200",
-                          mode === opt.value
-                            ? "border-primary bg-primary/10 text-primary"
-                            : "border-border bg-secondary/50 text-muted-foreground hover:border-primary/30"
-                        )}
-                      >
-                        <opt.icon className="w-5 h-5" />
-                        {opt.label}
-                      </button>
-                    ))}
-                  </div>
-                </div>
+              <Tabs defaultValue="appearance" className="mt-2">
+                <TabsList className="w-full">
+                  <TabsTrigger value="appearance" className="flex-1 gap-1.5">
+                    <Palette className="w-3.5 h-3.5" /> Theme
+                  </TabsTrigger>
+                  <TabsTrigger value="accessibility" className="flex-1 gap-1.5">
+                    <Accessibility className="w-3.5 h-3.5" /> Access
+                  </TabsTrigger>
+                </TabsList>
 
-                {/* Color theme */}
-                <div className="space-y-3">
-                  <label className="text-sm font-semibold flex items-center gap-2">
-                    <Palette className="w-4 h-4 text-muted-foreground" /> Color Theme
-                  </label>
-                  <div className="grid grid-cols-2 gap-2">
-                    {colorOptions.map((opt) => (
-                      <button
-                        key={opt.value}
-                        onClick={() => setColorTheme(opt.value)}
-                        className={cn(
-                          "flex items-center gap-3 p-3 rounded-xl border text-sm font-medium transition-all duration-200",
-                          colorTheme === opt.value
-                            ? "border-primary bg-primary/10 text-foreground"
-                            : "border-border bg-secondary/50 text-muted-foreground hover:border-primary/30"
-                        )}
-                      >
-                        <div className={cn("w-5 h-5 rounded-full shrink-0 ring-2 ring-border", opt.swatch)} />
-                        {opt.label}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-
-                {/* Replay tutorial */}
-                <div className="pt-2 border-t border-border">
-                  <button
-                    onClick={replayTutorial}
-                    className="flex items-center gap-3 w-full p-3 rounded-xl border border-border bg-secondary/50 text-sm font-medium text-muted-foreground hover:text-foreground hover:border-primary/30 transition-all duration-200"
-                  >
-                    <BookOpen className="w-5 h-5 shrink-0" />
-                    <div className="text-left">
-                      <p>Replay Tutorial</p>
-                      <p className="text-xs text-muted-foreground">Show the onboarding guide again</p>
+                <TabsContent value="appearance" className="space-y-6 pt-2">
+                  {/* Appearance mode */}
+                  <div className="space-y-3">
+                    <label className="text-sm font-semibold flex items-center gap-2">
+                      <Sun className="w-4 h-4 text-muted-foreground" /> Appearance
+                    </label>
+                    <div className="grid grid-cols-3 gap-2">
+                      {modeOptions.map((opt) => (
+                        <button
+                          key={opt.value}
+                          onClick={() => setMode(opt.value)}
+                          className={cn(
+                            "flex flex-col items-center gap-1.5 p-3 rounded-xl border text-xs font-medium transition-all duration-200",
+                            mode === opt.value
+                              ? "border-primary bg-primary/10 text-primary"
+                              : "border-border bg-secondary/50 text-muted-foreground hover:border-primary/30"
+                          )}
+                        >
+                          <opt.icon className="w-5 h-5" />
+                          {opt.label}
+                        </button>
+                      ))}
                     </div>
-                  </button>
-                </div>
-              </div>
+                  </div>
+
+                  {/* Color theme */}
+                  <div className="space-y-3">
+                    <label className="text-sm font-semibold flex items-center gap-2">
+                      <Palette className="w-4 h-4 text-muted-foreground" /> Color Theme
+                    </label>
+                    <div className="grid grid-cols-2 gap-2">
+                      {colorOptions.map((opt) => (
+                        <button
+                          key={opt.value}
+                          onClick={() => setColorTheme(opt.value)}
+                          className={cn(
+                            "flex items-center gap-3 p-3 rounded-xl border text-sm font-medium transition-all duration-200",
+                            colorTheme === opt.value
+                              ? "border-primary bg-primary/10 text-foreground"
+                              : "border-border bg-secondary/50 text-muted-foreground hover:border-primary/30"
+                          )}
+                        >
+                          <div className={cn("w-5 h-5 rounded-full shrink-0 ring-2 ring-border", opt.swatch)} />
+                          {opt.label}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Replay tutorial */}
+                  <div className="pt-2 border-t border-border">
+                    <button
+                      onClick={replayTutorial}
+                      className="flex items-center gap-3 w-full p-3 rounded-xl border border-border bg-secondary/50 text-sm font-medium text-muted-foreground hover:text-foreground hover:border-primary/30 transition-all duration-200"
+                    >
+                      <BookOpen className="w-5 h-5 shrink-0" />
+                      <div className="text-left">
+                        <p>Replay Tutorial</p>
+                        <p className="text-xs text-muted-foreground">Show the onboarding guide again</p>
+                      </div>
+                    </button>
+                  </div>
+                </TabsContent>
+
+                <TabsContent value="accessibility" className="space-y-5 pt-2">
+                  {/* Font Size */}
+                  <div className="space-y-3">
+                    <label className="text-sm font-semibold flex items-center gap-2">
+                      <Type className="w-4 h-4 text-muted-foreground" /> Text Size
+                    </label>
+                    <div className="grid grid-cols-3 gap-2">
+                      {fontSizeOptions.map((opt) => (
+                        <button
+                          key={opt.value}
+                          onClick={() => setFontSize(opt.value)}
+                          className={cn(
+                            "flex flex-col items-center gap-1 p-3 rounded-xl border text-xs font-medium transition-all duration-200",
+                            fontSize === opt.value
+                              ? "border-primary bg-primary/10 text-primary"
+                              : "border-border bg-secondary/50 text-muted-foreground hover:border-primary/30"
+                          )}
+                        >
+                          <span className={cn(
+                            "font-display font-bold",
+                            opt.value === "normal" && "text-base",
+                            opt.value === "large" && "text-lg",
+                            opt.value === "xl" && "text-xl",
+                          )}>{opt.preview}</span>
+                          {opt.label}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Toggle options */}
+                  <div className="space-y-3">
+                    <div className="flex items-center justify-between p-3 rounded-xl border border-border bg-secondary/50">
+                      <div className="flex items-center gap-3">
+                        <Zap className="w-4 h-4 text-muted-foreground" />
+                        <div>
+                          <p className="text-sm font-medium">Reduced Motion</p>
+                          <p className="text-xs text-muted-foreground">Minimize animations</p>
+                        </div>
+                      </div>
+                      <Switch checked={reducedMotion} onCheckedChange={setReducedMotion} />
+                    </div>
+
+                    <div className="flex items-center justify-between p-3 rounded-xl border border-border bg-secondary/50">
+                      <div className="flex items-center gap-3">
+                        <Eye className="w-4 h-4 text-muted-foreground" />
+                        <div>
+                          <p className="text-sm font-medium">High Contrast</p>
+                          <p className="text-xs text-muted-foreground">Increase text contrast</p>
+                        </div>
+                      </div>
+                      <Switch checked={highContrast} onCheckedChange={setHighContrast} />
+                    </div>
+
+                    <div className="flex items-center justify-between p-3 rounded-xl border border-border bg-secondary/50">
+                      <div className="flex items-center gap-3">
+                        <Type className="w-4 h-4 text-muted-foreground" />
+                        <div>
+                          <p className="text-sm font-medium">Dyslexia-Friendly Font</p>
+                          <p className="text-xs text-muted-foreground">Use OpenDyslexic typeface</p>
+                        </div>
+                      </div>
+                      <Switch checked={dyslexicFont} onCheckedChange={setDyslexicFont} />
+                    </div>
+                  </div>
+                </TabsContent>
+              </Tabs>
             </DialogContent>
           </Dialog>
 
