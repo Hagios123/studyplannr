@@ -6,7 +6,7 @@ import {
   BookOpen, Palette, Accessibility, Type, Eye, Zap, FileText, Heart,
   Library, Users, UserPlus, User, MessageCircle, MousePointer, Scan,
   AlignJustify, Focus, Glasses, Cpu, Paintbrush, Trophy, Radio,
-  Music, Volume2, VolumeX,
+  Music, Volume2, VolumeX, Upload, Trash2, Loader2,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useTheme } from "@/hooks/useTheme";
@@ -14,6 +14,9 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Switch } from "@/components/ui/switch";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Slider } from "@/components/ui/slider";
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/hooks/useAuth";
+import { toast } from "sonner";
 
 const ONBOARDING_KEY = "novastudy_onboarding_complete";
 
@@ -101,19 +104,33 @@ export function AppSidebar() {
   const [playing, setPlaying] = useState<string | null>(null);
   const [volume, setVolume] = useState(50);
   const audioRef = useRef<HTMLAudioElement | null>(null);
+  const fileInputRef = useRef<HTMLInputElement | null>(null);
+  const [customSounds, setCustomSounds] = useState<{ id: string; label: string; url: string; path: string }[]>([]);
+  const [uploading, setUploading] = useState(false);
+  const { user } = useAuth();
+
+  // Load custom sounds from storage
+  useEffect(() => {
+    if (!user) return;
+    const loadCustomSounds = async () => {
+      const { data } = await supabase.storage.from("custom-sounds").list(user.id, { sortBy: { column: "created_at", order: "desc" } });
+      if (data) {
+        setCustomSounds(data.map((f) => {
+          const { data: urlData } = supabase.storage.from("custom-sounds").getPublicUrl(`${user.id}/${f.name}`);
+          return { id: `custom-${f.name}`, label: f.name.replace(/\.[^.]+$/, ""), url: urlData.publicUrl, path: `${user.id}/${f.name}` };
+        }));
+      }
+    };
+    loadCustomSounds();
+  }, [user]);
 
   useEffect(() => {
     return () => {
-      if (audioRef.current) {
-        audioRef.current.pause();
-        audioRef.current = null;
-      }
+      if (audioRef.current) { audioRef.current.pause(); audioRef.current = null; }
     };
   }, []);
 
-  const playTrack = (trackId: string) => {
-    const track = AMBIENT_TRACKS.find((t) => t.id === trackId);
-    if (!track) return;
+  const playTrack = (trackId: string, url: string) => {
     if (playing === trackId) {
       audioRef.current?.pause();
       audioRef.current = null;
@@ -121,12 +138,35 @@ export function AppSidebar() {
       return;
     }
     if (audioRef.current) audioRef.current.pause();
-    const audio = new Audio(track.url);
+    const audio = new Audio(url);
     audio.loop = true;
     audio.volume = volume / 100;
     audio.play().catch(() => {});
     audioRef.current = audio;
     setPlaying(trackId);
+  };
+
+  const handleUploadSound = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file || !user) return;
+    if (!file.type.startsWith("audio/")) { toast.error("Please upload an audio file (MP3, WAV, etc.)"); return; }
+    if (file.size > 20 * 1024 * 1024) { toast.error("File must be under 20MB"); return; }
+    setUploading(true);
+    const fileName = `${Date.now()}-${file.name}`;
+    const { error } = await supabase.storage.from("custom-sounds").upload(`${user.id}/${fileName}`, file);
+    if (error) { toast.error("Upload failed"); setUploading(false); return; }
+    const { data: urlData } = supabase.storage.from("custom-sounds").getPublicUrl(`${user.id}/${fileName}`);
+    setCustomSounds((prev) => [{ id: `custom-${fileName}`, label: file.name.replace(/\.[^.]+$/, ""), url: urlData.publicUrl, path: `${user.id}/${fileName}` }, ...prev]);
+    toast.success("Sound uploaded!");
+    setUploading(false);
+    if (fileInputRef.current) fileInputRef.current.value = "";
+  };
+
+  const deleteCustomSound = async (sound: { id: string; path: string }) => {
+    if (playing === sound.id) { audioRef.current?.pause(); audioRef.current = null; setPlaying(null); }
+    await supabase.storage.from("custom-sounds").remove([sound.path]);
+    setCustomSounds((prev) => prev.filter((s) => s.id !== sound.id));
+    toast.success("Sound removed");
   };
 
   useEffect(() => {
@@ -322,13 +362,13 @@ export function AppSidebar() {
                 <TabsContent value="sounds" className="space-y-4 pt-2">
                   <div className="space-y-3">
                     <label className="text-sm font-semibold flex items-center gap-2">
-                      <Music className="w-4 h-4 text-muted-foreground" /> Study Sounds
+                      <Music className="w-4 h-4 text-muted-foreground" /> Built-in Sounds
                     </label>
                     <div className="space-y-1.5">
                       {AMBIENT_TRACKS.map((track) => (
                         <button
                           key={track.id}
-                          onClick={() => playTrack(track.id)}
+                          onClick={() => playTrack(track.id, track.url)}
                           className={cn(
                             "w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all",
                             playing === track.id
@@ -352,6 +392,75 @@ export function AppSidebar() {
                         </button>
                       ))}
                     </div>
+                  </div>
+
+                  {/* Custom Sounds */}
+                  <div className="space-y-3">
+                    <label className="text-sm font-semibold flex items-center gap-2">
+                      <Upload className="w-4 h-4 text-muted-foreground" /> Custom Sounds
+                    </label>
+                    {user ? (
+                      <>
+                        <input
+                          ref={fileInputRef}
+                          type="file"
+                          accept="audio/*"
+                          onChange={handleUploadSound}
+                          className="hidden"
+                        />
+                        <button
+                          onClick={() => fileInputRef.current?.click()}
+                          disabled={uploading}
+                          className="w-full flex items-center justify-center gap-2 px-3 py-2.5 rounded-xl border border-dashed border-border text-sm font-medium text-muted-foreground hover:border-primary/30 hover:text-foreground transition-all disabled:opacity-50"
+                        >
+                          {uploading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Upload className="w-4 h-4" />}
+                          {uploading ? "Uploading..." : "Upload Sound (MP3, WAV)"}
+                        </button>
+                        {customSounds.length > 0 && (
+                          <div className="space-y-1.5">
+                            {customSounds.map((sound) => (
+                              <div key={sound.id} className="flex items-center gap-1">
+                                <button
+                                  onClick={() => playTrack(sound.id, sound.url)}
+                                  className={cn(
+                                    "flex-1 flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all",
+                                    playing === sound.id
+                                      ? "bg-primary/10 text-primary border border-primary/20"
+                                      : "bg-secondary/50 text-muted-foreground hover:bg-secondary hover:text-foreground border border-transparent"
+                                  )}
+                                >
+                                  <span className="text-base">🎧</span>
+                                  <span className="flex-1 text-left truncate">{sound.label}</span>
+                                  {playing === sound.id && (
+                                    <div className="flex gap-0.5 items-end">
+                                      {[1, 2, 3].map((i) => (
+                                        <div
+                                          key={i}
+                                          className="w-0.5 bg-primary rounded-full animate-pulse"
+                                          style={{ height: `${8 + i * 3}px`, animationDelay: `${i * 0.15}s` }}
+                                        />
+                                      ))}
+                                    </div>
+                                  )}
+                                </button>
+                                <button
+                                  onClick={() => deleteCustomSound(sound)}
+                                  className="p-2 rounded-lg text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-all shrink-0"
+                                  title="Remove sound"
+                                >
+                                  <Trash2 className="w-3.5 h-3.5" />
+                                </button>
+                              </div>
+                            ))}
+                          </div>
+                        )}
+                        {customSounds.length === 0 && (
+                          <p className="text-xs text-muted-foreground text-center py-2">No custom sounds yet. Upload your own!</p>
+                        )}
+                      </>
+                    ) : (
+                      <p className="text-xs text-muted-foreground text-center py-2">Sign in to upload custom sounds</p>
+                    )}
                   </div>
 
                   <div className="space-y-2">
