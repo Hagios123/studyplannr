@@ -1,32 +1,11 @@
 import { useState } from "react";
 import { NavLink, useLocation } from "react-router-dom";
 import {
-  LayoutDashboard,
-  CalendarDays,
-  Layers,
-  HelpCircle,
-  MessageSquare,
-  BarChart3,
-  ChevronLeft,
-  ChevronRight,
-  Sparkles,
-  Settings,
-  Sun,
-  Moon,
-  Monitor,
-  BookOpen,
-  Palette,
-  Accessibility,
-  Type,
-  Eye,
-  Zap,
-  FileText,
-  Heart,
-  Library,
-  Users,
-  UserPlus,
-  User,
-  MessageCircle,
+  LayoutDashboard, CalendarDays, Layers, HelpCircle, MessageSquare, BarChart3,
+  ChevronLeft, ChevronRight, Sparkles, Settings, Sun, Moon, Monitor,
+  BookOpen, Palette, Accessibility, Type, Eye, Zap, FileText, Heart,
+  Library, Users, UserPlus, User, MessageCircle, MousePointer, Scan,
+  AlignJustify, Focus, Glasses,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useTheme } from "@/hooks/useTheme";
@@ -50,17 +29,17 @@ const toolItems = [
   { to: "/resources", icon: Library, label: "Library" },
   { to: "/groups", icon: Users, label: "Groups" },
   { to: "/friends", icon: UserPlus, label: "Friends" },
+  { to: "/chat", icon: MessageCircle, label: "Chat" },
   { to: "/profile", icon: User, label: "Profile" },
   { to: "/analytics", icon: BarChart3, label: "Stats" },
 ];
 
-// Mobile nav shows top items
 const mobileItems = [
   { to: "/", icon: LayoutDashboard, label: "Home" },
   { to: "/planner", icon: CalendarDays, label: "Plan" },
   { to: "/flashcards", icon: Layers, label: "Cards" },
-  { to: "/tutor", icon: MessageSquare, label: "Tutor" },
-  { to: "/notes", icon: FileText, label: "Notes" },
+  { to: "/chat", icon: MessageCircle, label: "Chat" },
+  { to: "/groups", icon: Users, label: "Groups" },
 ];
 
 const modeOptions = [
@@ -70,16 +49,22 @@ const modeOptions = [
 ];
 
 const colorOptions = [
-  { value: "blue" as const, label: "Cyan Blue", swatch: "bg-[hsl(187,80%,52%)]" },
-  { value: "green" as const, label: "Forest Green", swatch: "bg-[hsl(152,72%,48%)]" },
-  { value: "red" as const, label: "Crimson Red", swatch: "bg-[hsl(0,78%,58%)]" },
-  { value: "grey" as const, label: "Steel Grey", swatch: "bg-[hsl(220,15%,60%)]" },
+  { value: "blue" as const, label: "Neon Cyan", swatch: "bg-[hsl(187,100%,50%)]" },
+  { value: "green" as const, label: "Matrix Green", swatch: "bg-[hsl(152,100%,45%)]" },
+  { value: "red" as const, label: "Crimson Neon", swatch: "bg-[hsl(0,90%,55%)]" },
+  { value: "grey" as const, label: "Steel Grey", swatch: "bg-[hsl(220,20%,58%)]" },
 ];
 
 const fontSizeOptions = [
   { value: "normal" as const, label: "Normal", preview: "Aa" },
   { value: "large" as const, label: "Large", preview: "Aa" },
   { value: "xl" as const, label: "Extra Large", preview: "Aa" },
+];
+
+const lineSpacingOptions = [
+  { value: "compact" as const, label: "Compact" },
+  { value: "normal" as const, label: "Normal" },
+  { value: "relaxed" as const, label: "Relaxed" },
 ];
 
 export function AppSidebar() {
@@ -90,6 +75,9 @@ export function AppSidebar() {
     mode, setMode, colorTheme, setColorTheme,
     fontSize, setFontSize, reducedMotion, setReducedMotion,
     highContrast, setHighContrast, dyslexicFont, setDyslexicFont,
+    lineSpacing, setLineSpacing, focusHighlight, setFocusHighlight,
+    colorBlindMode, setColorBlindMode, screenReaderHints, setScreenReaderHints,
+    largeCursor, setLargeCursor,
   } = useTheme();
 
   const replayTutorial = () => {
@@ -106,7 +94,7 @@ export function AppSidebar() {
         className={cn(
           "flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-all duration-200 group",
           isActive
-            ? "bg-primary/10 text-primary glow-primary"
+            ? "bg-primary/10 text-primary glow-neon"
             : "text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
         )}
       >
@@ -115,6 +103,21 @@ export function AppSidebar() {
       </NavLink>
     );
   };
+
+  const ToggleRow = ({ icon: Icon, label, description, checked, onChange }: {
+    icon: any; label: string; description: string; checked: boolean; onChange: (v: boolean) => void;
+  }) => (
+    <div className="flex items-center justify-between p-3 rounded-xl border border-border bg-secondary/50">
+      <div className="flex items-center gap-3">
+        <Icon className="w-4 h-4 text-muted-foreground" />
+        <div>
+          <p className="text-sm font-medium">{label}</p>
+          <p className="text-xs text-muted-foreground">{description}</p>
+        </div>
+      </div>
+      <Switch checked={checked} onCheckedChange={onChange} />
+    </div>
+  );
 
   return (
     <>
@@ -126,26 +129,24 @@ export function AppSidebar() {
         )}
       >
         <div className="flex items-center gap-3 px-4 h-14 border-b border-sidebar-border">
-          <div className="w-7 h-7 rounded-lg bg-primary/20 flex items-center justify-center glow-primary shrink-0">
+          <div className="w-7 h-7 rounded-lg bg-primary/20 flex items-center justify-center glow-neon shrink-0">
             <Sparkles className="w-3.5 h-3.5 text-primary" />
           </div>
           {!collapsed && (
-            <span className="font-display font-bold text-base text-gradient-primary whitespace-nowrap">
-              Study AI
+            <span className="font-cyber font-bold text-sm text-gradient-primary whitespace-nowrap tracking-wider">
+              STUDY AI
             </span>
           )}
         </div>
 
         <nav className="flex-1 py-3 px-2 space-y-4 overflow-y-auto">
-          {/* Study section */}
           <div className="space-y-0.5">
-            {!collapsed && <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider px-3 mb-1.5">Study</p>}
+            {!collapsed && <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider px-3 mb-1.5 font-cyber">Study</p>}
             {studyItems.map(renderNavItem)}
           </div>
 
-          {/* Tools section */}
           <div className="space-y-0.5">
-            {!collapsed && <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider px-3 mb-1.5">Tools</p>}
+            {!collapsed && <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider px-3 mb-1.5 font-cyber">Tools</p>}
             {toolItems.map(renderNavItem)}
           </div>
         </nav>
@@ -163,8 +164,8 @@ export function AppSidebar() {
             </DialogTrigger>
             <DialogContent className="max-w-md max-h-[85vh] overflow-y-auto">
               <DialogHeader>
-                <DialogTitle className="flex items-center gap-2">
-                  <Settings className="w-5 h-5 text-primary" /> Settings
+                <DialogTitle className="flex items-center gap-2 font-cyber tracking-wide">
+                  <Settings className="w-5 h-5 text-primary" /> SETTINGS
                 </DialogTitle>
               </DialogHeader>
               <Tabs defaultValue="appearance" className="mt-2">
@@ -190,7 +191,7 @@ export function AppSidebar() {
                           className={cn(
                             "flex flex-col items-center gap-1.5 p-3 rounded-xl border text-xs font-medium transition-all duration-200",
                             mode === opt.value
-                              ? "border-primary bg-primary/10 text-primary"
+                              ? "border-primary bg-primary/10 text-primary glow-primary"
                               : "border-border bg-secondary/50 text-muted-foreground hover:border-primary/30"
                           )}
                         >
@@ -213,7 +214,7 @@ export function AppSidebar() {
                           className={cn(
                             "flex items-center gap-3 p-3 rounded-xl border text-sm font-medium transition-all duration-200",
                             colorTheme === opt.value
-                              ? "border-primary bg-primary/10 text-foreground"
+                              ? "border-primary bg-primary/10 text-foreground glow-primary"
                               : "border-border bg-secondary/50 text-muted-foreground hover:border-primary/30"
                           )}
                         >
@@ -238,7 +239,8 @@ export function AppSidebar() {
                   </div>
                 </TabsContent>
 
-                <TabsContent value="accessibility" className="space-y-5 pt-2">
+                <TabsContent value="accessibility" className="space-y-4 pt-2">
+                  {/* Text Size */}
                   <div className="space-y-3">
                     <label className="text-sm font-semibold flex items-center gap-2">
                       <Type className="w-4 h-4 text-muted-foreground" /> Text Size
@@ -267,39 +269,38 @@ export function AppSidebar() {
                     </div>
                   </div>
 
+                  {/* Line Spacing */}
                   <div className="space-y-3">
-                    <div className="flex items-center justify-between p-3 rounded-xl border border-border bg-secondary/50">
-                      <div className="flex items-center gap-3">
-                        <Zap className="w-4 h-4 text-muted-foreground" />
-                        <div>
-                          <p className="text-sm font-medium">Reduced Motion</p>
-                          <p className="text-xs text-muted-foreground">Minimize animations</p>
-                        </div>
-                      </div>
-                      <Switch checked={reducedMotion} onCheckedChange={setReducedMotion} />
+                    <label className="text-sm font-semibold flex items-center gap-2">
+                      <AlignJustify className="w-4 h-4 text-muted-foreground" /> Line Spacing
+                    </label>
+                    <div className="grid grid-cols-3 gap-2">
+                      {lineSpacingOptions.map((opt) => (
+                        <button
+                          key={opt.value}
+                          onClick={() => setLineSpacing(opt.value)}
+                          className={cn(
+                            "flex flex-col items-center gap-1 p-2.5 rounded-xl border text-xs font-medium transition-all duration-200",
+                            lineSpacing === opt.value
+                              ? "border-primary bg-primary/10 text-primary"
+                              : "border-border bg-secondary/50 text-muted-foreground hover:border-primary/30"
+                          )}
+                        >
+                          {opt.label}
+                        </button>
+                      ))}
                     </div>
+                  </div>
 
-                    <div className="flex items-center justify-between p-3 rounded-xl border border-border bg-secondary/50">
-                      <div className="flex items-center gap-3">
-                        <Eye className="w-4 h-4 text-muted-foreground" />
-                        <div>
-                          <p className="text-sm font-medium">High Contrast</p>
-                          <p className="text-xs text-muted-foreground">Increase text contrast</p>
-                        </div>
-                      </div>
-                      <Switch checked={highContrast} onCheckedChange={setHighContrast} />
-                    </div>
-
-                    <div className="flex items-center justify-between p-3 rounded-xl border border-border bg-secondary/50">
-                      <div className="flex items-center gap-3">
-                        <Type className="w-4 h-4 text-muted-foreground" />
-                        <div>
-                          <p className="text-sm font-medium">Dyslexia-Friendly Font</p>
-                          <p className="text-xs text-muted-foreground">Use OpenDyslexic typeface</p>
-                        </div>
-                      </div>
-                      <Switch checked={dyslexicFont} onCheckedChange={setDyslexicFont} />
-                    </div>
+                  {/* Toggle options */}
+                  <div className="space-y-2">
+                    <ToggleRow icon={Zap} label="Reduced Motion" description="Minimize animations" checked={reducedMotion} onChange={setReducedMotion} />
+                    <ToggleRow icon={Eye} label="High Contrast" description="Increase text contrast" checked={highContrast} onChange={setHighContrast} />
+                    <ToggleRow icon={Type} label="Dyslexia-Friendly Font" description="Use OpenDyslexic typeface" checked={dyslexicFont} onChange={setDyslexicFont} />
+                    <ToggleRow icon={Focus} label="Focus Indicators" description="Enhanced keyboard focus outlines" checked={focusHighlight} onChange={setFocusHighlight} />
+                    <ToggleRow icon={Glasses} label="Colorblind Mode" description="Deuteranopia-friendly palette" checked={colorBlindMode} onChange={setColorBlindMode} />
+                    <ToggleRow icon={Scan} label="Screen Reader Hints" description="Show ARIA label indicators" checked={screenReaderHints} onChange={setScreenReaderHints} />
+                    <ToggleRow icon={MousePointer} label="Large Cursor" description="Bigger pointer for visibility" checked={largeCursor} onChange={setLargeCursor} />
                   </div>
                 </TabsContent>
               </Tabs>
