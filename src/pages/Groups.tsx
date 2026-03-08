@@ -4,7 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import {
   Users, Plus, Trash2, Check, Target, UserPlus, FileText, Upload, Download,
-  Loader2, ChevronLeft, X, Search, Globe,
+  Loader2, ChevronLeft, X, Search, Globe, MessageCircle,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
