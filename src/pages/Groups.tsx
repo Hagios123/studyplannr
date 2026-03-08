@@ -367,7 +367,8 @@ export default function Groups() {
                 </button>
               );
             })
-          )}
+          );
+          })()}
         </div>
 
         {/* Group detail */}
