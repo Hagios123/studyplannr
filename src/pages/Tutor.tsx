@@ -53,7 +53,7 @@ export default function Tutor() {
     {
       id: "welcome",
       role: "assistant",
-      content: "👋 Hello! I'm **Nova**, your AI study tutor. I can help you understand complex topics, summarize chapters, and explain concepts step-by-step.\n\nYou can also **upload PDFs or text files** using the 📎 button for me to analyze!\n\nSelect a subject above or just ask me anything!",
+      content: "👋 Hello! I'm your **Study AI** tutor. I can help you understand complex topics, summarize chapters, and explain concepts step-by-step.\n\nYou can also **upload PDFs or text files** using the 📎 button for me to analyze!\n\nSelect a subject above or just ask me anything!",
     },
   ]);
   const [input, setInput] = useState("");
