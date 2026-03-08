@@ -4,7 +4,7 @@ type Mode = "light" | "dark" | "system";
 type ColorTheme = "blue" | "green" | "red" | "grey" | "purple";
 type FontSize = "normal" | "large" | "xl";
 type LineSpacing = "compact" | "normal" | "relaxed";
-type UiStyle = "normal" | "cyberpunk";
+type UiStyle = "normal" | "cyberpunk" | "retro" | "glass" | "minimal";
 
 interface ThemeContext {
   mode: Mode;
