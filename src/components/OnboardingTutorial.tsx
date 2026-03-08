@@ -28,7 +28,7 @@ interface TutorialStep {
 const steps: TutorialStep[] = [
   {
     icon: Rocket,
-    title: "Welcome to NovaStudy OS",
+    title: "Welcome to Study AI",
     description:
       "Your AI-powered study command center. Let's take a quick tour of all the features available to you.",
     tip: "This tutorial only shows once — you can always find help in the sidebar.",
