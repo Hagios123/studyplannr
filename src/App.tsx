@@ -41,6 +41,7 @@ function AnimatedRoutes() {
         <Route path="/habits" element={<PageTransition><Habits /></PageTransition>} />
         <Route path="/resources" element={<PageTransition><Resources /></PageTransition>} />
         <Route path="/groups" element={<PageTransition><Groups /></PageTransition>} />
+        <Route path="/friends" element={<PageTransition><Friends /></PageTransition>} />
         <Route path="*" element={<PageTransition><NotFound /></PageTransition>} />
       </Routes>
     </AnimatePresence>
