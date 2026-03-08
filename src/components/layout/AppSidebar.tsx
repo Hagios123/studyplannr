@@ -319,6 +319,63 @@ export function AppSidebar() {
                   </div>
                 </TabsContent>
 
+                <TabsContent value="sounds" className="space-y-4 pt-2">
+                  <div className="space-y-3">
+                    <label className="text-sm font-semibold flex items-center gap-2">
+                      <Music className="w-4 h-4 text-muted-foreground" /> Study Sounds
+                    </label>
+                    <div className="space-y-1.5">
+                      {AMBIENT_TRACKS.map((track) => (
+                        <button
+                          key={track.id}
+                          onClick={() => playTrack(track.id)}
+                          className={cn(
+                            "w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all",
+                            playing === track.id
+                              ? "bg-primary/10 text-primary border border-primary/20"
+                              : "bg-secondary/50 text-muted-foreground hover:bg-secondary hover:text-foreground border border-transparent"
+                          )}
+                        >
+                          <span className="text-base">{track.emoji}</span>
+                          <span className="flex-1 text-left">{track.label}</span>
+                          {playing === track.id && (
+                            <div className="flex gap-0.5 items-end">
+                              {[1, 2, 3].map((i) => (
+                                <div
+                                  key={i}
+                                  className="w-0.5 bg-primary rounded-full animate-pulse"
+                                  style={{ height: `${8 + i * 3}px`, animationDelay: `${i * 0.15}s` }}
+                                />
+                              ))}
+                            </div>
+                          )}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  <div className="space-y-2">
+                    <label className="text-sm font-semibold flex items-center gap-2">
+                      <Volume2 className="w-4 h-4 text-muted-foreground" /> Volume
+                    </label>
+                    <div className="flex items-center gap-3 px-1">
+                      <VolumeX className="w-4 h-4 text-muted-foreground shrink-0" />
+                      <Slider value={[volume]} onValueChange={(v) => setVolume(v[0])} max={100} step={1} className="flex-1" />
+                      <Volume2 className="w-4 h-4 text-muted-foreground shrink-0" />
+                    </div>
+                    <p className="text-xs text-muted-foreground text-center">{volume}%</p>
+                  </div>
+
+                  {playing && (
+                    <button
+                      onClick={() => { audioRef.current?.pause(); audioRef.current = null; setPlaying(null); }}
+                      className="w-full p-2.5 rounded-xl border border-destructive/20 bg-destructive/5 text-destructive text-sm font-medium hover:bg-destructive/10 transition-all"
+                    >
+                      Stop Playing
+                    </button>
+                  )}
+                </TabsContent>
+
                 <TabsContent value="accessibility" className="space-y-4 pt-2">
                   {/* Text Size */}
                   <div className="space-y-3">
