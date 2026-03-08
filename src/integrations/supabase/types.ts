@@ -38,6 +38,41 @@ export type Database = {
         }
         Relationships: []
       }
+      group_channels: {
+        Row: {
+          created_at: string
+          created_by: string
+          group_id: string
+          id: string
+          label: string
+          name: string
+        }
+        Insert: {
+          created_at?: string
+          created_by: string
+          group_id: string
+          id?: string
+          label: string
+          name: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string
+          group_id?: string
+          id?: string
+          label?: string
+          name?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "group_channels_group_id_fkey"
+            columns: ["group_id"]
+            isOneToOne: false
+            referencedRelation: "study_groups"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       group_goals: {
         Row: {
           assignee_id: string | null
@@ -183,6 +218,94 @@ export type Database = {
         Relationships: [
           {
             foreignKeyName: "group_notes_group_id_fkey"
+            columns: ["group_id"]
+            isOneToOne: false
+            referencedRelation: "study_groups"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      group_quiz_responses: {
+        Row: {
+          answers: Json
+          completed_at: string
+          id: string
+          quiz_id: string
+          score: number
+          total: number
+          user_id: string
+        }
+        Insert: {
+          answers?: Json
+          completed_at?: string
+          id?: string
+          quiz_id: string
+          score?: number
+          total?: number
+          user_id: string
+        }
+        Update: {
+          answers?: Json
+          completed_at?: string
+          id?: string
+          quiz_id?: string
+          score?: number
+          total?: number
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "group_quiz_responses_quiz_id_fkey"
+            columns: ["quiz_id"]
+            isOneToOne: false
+            referencedRelation: "group_quizzes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      group_quizzes: {
+        Row: {
+          channel: string
+          created_at: string
+          created_by: string
+          difficulty: string
+          group_id: string
+          id: string
+          questions: Json
+          status: string
+          subject: string
+          title: string
+          topic: string
+        }
+        Insert: {
+          channel?: string
+          created_at?: string
+          created_by: string
+          difficulty?: string
+          group_id: string
+          id?: string
+          questions?: Json
+          status?: string
+          subject: string
+          title: string
+          topic: string
+        }
+        Update: {
+          channel?: string
+          created_at?: string
+          created_by?: string
+          difficulty?: string
+          group_id?: string
+          id?: string
+          questions?: Json
+          status?: string
+          subject?: string
+          title?: string
+          topic?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "group_quizzes_group_id_fkey"
             columns: ["group_id"]
             isOneToOne: false
             referencedRelation: "study_groups"
