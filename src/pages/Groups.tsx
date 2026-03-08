@@ -68,6 +68,7 @@ interface FriendProfile {
 }
 
 export default function Groups() {
+  const navigate = useNavigate();
   const { user } = useAuth();
   const { toast } = useToast();
 
