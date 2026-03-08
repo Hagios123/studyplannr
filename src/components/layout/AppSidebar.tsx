@@ -231,6 +231,30 @@ export function AppSidebar() {
                     </div>
                   </div>
 
+                  {/* UI Style */}
+                  <div className="space-y-3">
+                    <label className="text-sm font-semibold flex items-center gap-2">
+                      <Cpu className="w-4 h-4 text-muted-foreground" /> UI Style
+                    </label>
+                    <div className="grid grid-cols-2 gap-2">
+                      {uiStyleOptions.map((opt) => (
+                        <button
+                          key={opt.value}
+                          onClick={() => setUiStyle(opt.value)}
+                          className={cn(
+                            "flex flex-col items-center gap-1.5 p-3 rounded-xl border text-xs font-medium transition-all duration-200",
+                            uiStyle === opt.value
+                              ? "border-primary bg-primary/10 text-primary glow-primary"
+                              : "border-border bg-secondary/50 text-muted-foreground hover:border-primary/30"
+                          )}
+                        >
+                          <opt.icon className="w-5 h-5" />
+                          {opt.label}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
                   <div className="pt-2 border-t border-border">
                     <button
                       onClick={replayTutorial}

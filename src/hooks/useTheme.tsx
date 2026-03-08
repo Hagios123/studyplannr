@@ -1,9 +1,10 @@
 import { createContext, useContext, useEffect, useState } from "react";
 
 type Mode = "light" | "dark" | "system";
-type ColorTheme = "blue" | "green" | "red" | "grey";
+type ColorTheme = "blue" | "green" | "red" | "grey" | "purple";
 type FontSize = "normal" | "large" | "xl";
 type LineSpacing = "compact" | "normal" | "relaxed";
+type UiStyle = "normal" | "cyberpunk";
 
 interface ThemeContext {
   mode: Mode;
@@ -29,6 +30,8 @@ interface ThemeContext {
   setScreenReaderHints: (v: boolean) => void;
   largeCursor: boolean;
   setLargeCursor: (v: boolean) => void;
+  uiStyle: UiStyle;
+  setUiStyle: (v: UiStyle) => void;
 }
 
 const ThemeCtx = createContext<ThemeContext>({
@@ -44,6 +47,7 @@ const ThemeCtx = createContext<ThemeContext>({
   colorBlindMode: false, setColorBlindMode: () => {},
   screenReaderHints: false, setScreenReaderHints: () => {},
   largeCursor: false, setLargeCursor: () => {},
+  uiStyle: "normal", setUiStyle: () => {},
 });
 
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
@@ -58,6 +62,7 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
   const [colorBlindMode, setColorBlindModeState] = useState(() => localStorage.getItem("studyai_colorblind") === "true");
   const [screenReaderHints, setScreenReaderHintsState] = useState(() => localStorage.getItem("studyai_sr_hints") === "true");
   const [largeCursor, setLargeCursorState] = useState(() => localStorage.getItem("studyai_large_cursor") === "true");
+  const [uiStyle, setUiStyleState] = useState<UiStyle>(() => (localStorage.getItem("studyai_ui_style") as UiStyle) || "normal");
   const [systemDark, setSystemDark] = useState(() => window.matchMedia("(prefers-color-scheme: dark)").matches);
 
   useEffect(() => {
@@ -74,6 +79,7 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
     root.classList.remove("light", "dark");
     root.classList.add(resolvedMode);
     root.setAttribute("data-color-theme", colorTheme);
+    root.setAttribute("data-ui-style", uiStyle);
 
     root.classList.remove("text-size-normal", "text-size-large", "text-size-xl");
     root.classList.add(`text-size-${fontSize}`);
@@ -86,7 +92,8 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
     root.classList.toggle("colorblind-mode", colorBlindMode);
     root.classList.toggle("sr-hints", screenReaderHints);
     root.classList.toggle("large-cursor", largeCursor);
-  }, [resolvedMode, colorTheme, fontSize, reducedMotion, highContrast, dyslexicFont, lineSpacing, focusHighlight, colorBlindMode, screenReaderHints, largeCursor]);
+    root.classList.toggle("ui-cyberpunk", uiStyle === "cyberpunk");
+  }, [resolvedMode, colorTheme, fontSize, reducedMotion, highContrast, dyslexicFont, lineSpacing, focusHighlight, colorBlindMode, screenReaderHints, largeCursor, uiStyle]);
 
   const persist = (key: string, val: string) => localStorage.setItem(key, val);
 
@@ -101,6 +108,7 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
   const setColorBlindMode = (v: boolean) => { persist("studyai_colorblind", String(v)); setColorBlindModeState(v); };
   const setScreenReaderHints = (v: boolean) => { persist("studyai_sr_hints", String(v)); setScreenReaderHintsState(v); };
   const setLargeCursor = (v: boolean) => { persist("studyai_large_cursor", String(v)); setLargeCursorState(v); };
+  const setUiStyle = (v: UiStyle) => { persist("studyai_ui_style", v); setUiStyleState(v); };
 
   return (
     <ThemeCtx.Provider value={{
@@ -109,7 +117,7 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
       highContrast, setHighContrast, dyslexicFont, setDyslexicFont,
       lineSpacing, setLineSpacing, focusHighlight, setFocusHighlight,
       colorBlindMode, setColorBlindMode, screenReaderHints, setScreenReaderHints,
-      largeCursor, setLargeCursor,
+      largeCursor, setLargeCursor, uiStyle, setUiStyle,
     }}>
       {children}
     </ThemeCtx.Provider>
