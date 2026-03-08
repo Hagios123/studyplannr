@@ -5,7 +5,7 @@ import {
   ChevronLeft, ChevronRight, Sparkles, Settings, Sun, Moon, Monitor,
   BookOpen, Palette, Accessibility, Type, Eye, Zap, FileText, Heart,
   Library, Users, UserPlus, User, MessageCircle, MousePointer, Scan,
-  AlignJustify, Focus, Glasses, Cpu, Paintbrush,
+  AlignJustify, Focus, Glasses, Cpu, Paintbrush, Trophy, Radio,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useTheme } from "@/hooks/useTheme";
