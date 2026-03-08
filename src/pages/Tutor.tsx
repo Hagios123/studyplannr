@@ -53,7 +53,7 @@ export default function Tutor() {
     {
       id: "welcome",
       role: "assistant",
-      content: "👋 Hello! I'm **Nova**, your AI study tutor. I can help you understand complex topics, summarize chapters, and explain concepts step-by-step.\n\nYou can also **upload PDFs or text files** using the 📎 button for me to analyze!\n\nSelect a subject above or just ask me anything!",
+      content: "👋 Hello! I'm your **Study AI** tutor. I can help you understand complex topics, summarize chapters, and explain concepts step-by-step.\n\nYou can also **upload PDFs or text files** using the 📎 button for me to analyze!\n\nSelect a subject above or just ask me anything!",
     },
   ]);
   const [input, setInput] = useState("");
@@ -252,7 +252,7 @@ export default function Tutor() {
               {msg.role === "assistant" && (
                 <div className="flex items-center gap-1.5 mb-2">
                   <Sparkles className="w-3.5 h-3.5 text-accent" />
-                  <span className="text-xs text-accent font-medium">Nova</span>
+                  <span className="text-xs text-accent font-medium">Study AI</span>
                 </div>
               )}
               <div className="prose prose-sm prose-invert max-w-none">
@@ -266,7 +266,7 @@ export default function Tutor() {
             <div className="bg-card border border-border rounded-2xl rounded-bl-md px-5 py-3">
               <div className="flex items-center gap-1.5 mb-2">
                 <Sparkles className="w-3.5 h-3.5 text-accent" />
-                <span className="text-xs text-accent font-medium">Nova</span>
+                <span className="text-xs text-accent font-medium">Study AI</span>
               </div>
               <div className="flex gap-1">
                 <span className="w-2 h-2 bg-muted-foreground rounded-full animate-bounce" style={{ animationDelay: "0ms" }} />

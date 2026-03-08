@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect, useCallback } from "react";
 import { useStudyStore } from "@/stores/useStudyStore";
 import { Layers, RotateCw, Check, ChevronLeft, ChevronRight, Clock, Sparkles, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -71,8 +71,22 @@ export default function Flashcards() {
 
   const card = filtered[currentIndex];
 
-  const next = () => { setFlipped(false); setCurrentIndex((prev) => (prev + 1) % filtered.length); };
-  const prev = () => { setFlipped(false); setCurrentIndex((prev) => (prev - 1 + filtered.length) % filtered.length); };
+  const next = useCallback(() => { setFlipped(false); setCurrentIndex((prev) => (prev + 1) % filtered.length); }, [filtered.length]);
+  const prev = useCallback(() => { setFlipped(false); setCurrentIndex((prev) => (prev - 1 + filtered.length) % filtered.length); }, [filtered.length]);
+
+  // Keyboard shortcuts: ← → navigate, Space flip, M mastered
+  useEffect(() => {
+    const handler = (e: KeyboardEvent) => {
+      if (filtered.length === 0) return;
+      if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) return;
+      if (e.key === "ArrowRight") next();
+      else if (e.key === "ArrowLeft") prev();
+      else if (e.key === " ") { e.preventDefault(); setFlipped((f) => !f); }
+      else if (e.key === "m" || e.key === "M") { if (card) toggleFlashcardMastered(card.id); }
+    };
+    window.addEventListener("keydown", handler);
+    return () => window.removeEventListener("keydown", handler);
+  }, [next, prev, card, filtered.length, toggleFlashcardMastered]);
 
   const effectiveSubject = genSubject === "__custom__" ? customSubject : genSubject;
   const effectiveTopic = genTopic === "__custom_topic__" ? customTopic : (genTopic || customTopic || effectiveSubject);
@@ -281,6 +295,9 @@ export default function Flashcards() {
               {card.mastered ? "Unmark Mastered" : "Mark as Mastered"}
             </Button>
           </div>
+          <p className="text-center text-[10px] text-muted-foreground mt-2 hidden md:block">
+            ← → navigate · Space flip · M mark mastered
+          </p>
         </>
       )}
     </div>

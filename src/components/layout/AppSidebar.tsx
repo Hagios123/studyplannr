@@ -72,7 +72,7 @@ export function AppSidebar() {
           </div>
           {!collapsed && (
             <span className="font-display font-bold text-lg text-gradient-primary whitespace-nowrap">
-              NovaStudy
+              Study AI
             </span>
           )}
         </div>

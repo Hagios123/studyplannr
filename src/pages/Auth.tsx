@@ -27,7 +27,7 @@ export default function Auth() {
           },
         });
         if (error) throw error;
-        toast({ title: "Account created!", description: "Welcome to NovaStudy." });
+        toast({ title: "Account created!", description: "Welcome to Study AI." });
       } else {
         const { error } = await supabase.auth.signInWithPassword({ email, password });
         if (error) throw error;
@@ -45,7 +45,7 @@ export default function Auth() {
         <div className="text-center">
           <div className="flex items-center justify-center gap-2 mb-4">
             <Sparkles className="w-8 h-8 text-primary" />
-            <h1 className="text-3xl font-display font-bold text-gradient-primary">NovaStudy</h1>
+            <h1 className="text-3xl font-display font-bold text-gradient-primary">Study AI</h1>
           </div>
           <p className="text-muted-foreground text-sm">Your AI-powered study companion</p>
         </div>

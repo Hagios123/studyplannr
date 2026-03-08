@@ -1,3 +1,4 @@
+import { useState, useEffect } from "react";
 import { useStudyStore } from "@/stores/useStudyStore";
 import { useAuth } from "@/hooks/useAuth";
 import {
@@ -9,9 +10,29 @@ import {
   Sparkles,
   ArrowRight,
   LogOut,
+  Flame,
+  Lightbulb,
 } from "lucide-react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
+
+const TIPS = [
+  "Use the Pomodoro technique: 25 min focus, 5 min break. Your brain retains more with spaced intervals.",
+  "Teaching a concept to someone else is one of the best ways to truly understand it.",
+  "Review flashcards right before sleep — your brain consolidates memories during rest.",
+  "Break large topics into smaller chunks. Micro-learning sessions are more effective.",
+  "Active recall (testing yourself) beats passive re-reading every time.",
+  "Interleave subjects instead of blocking — mixing topics improves long-term retention.",
+  "Write summaries in your own words after each session to strengthen understanding.",
+  "Stay hydrated! Even mild dehydration reduces cognitive performance by up to 25%.",
+  "Use the AI Tutor to ask 'why' questions — deep understanding beats surface memorization.",
+  "Set specific goals for each session: 'Learn X' beats 'Study for 1 hour'.",
+];
+
+function getDailyTip() {
+  const dayOfYear = Math.floor((Date.now() - new Date(new Date().getFullYear(), 0, 0).getTime()) / 86400000);
+  return TIPS[dayOfYear % TIPS.length];
+}
 
 function StatCard({
   icon: Icon,
@@ -50,6 +71,40 @@ function StatCard({
       </div>
       <p className="text-xl md:text-3xl font-display font-bold">{value}</p>
       {sublabel && <p className="text-[10px] md:text-xs text-muted-foreground mt-1">{sublabel}</p>}
+    </div>
+  );
+}
+
+function StreakCard({ tasks }: { tasks: { date: string; status: string }[] }) {
+  const streak = (() => {
+    let count = 0;
+    const today = new Date();
+    for (let i = 0; i < 365; i++) {
+      const d = new Date(today);
+      d.setDate(today.getDate() - i);
+      const dateStr = d.toISOString().split("T")[0];
+      const dayTasks = tasks.filter((t) => t.date === dateStr);
+      const hasCompleted = dayTasks.some((t) => t.status === "completed");
+      // Skip today if no tasks yet
+      if (i === 0 && dayTasks.length === 0) continue;
+      if (hasCompleted) count++;
+      else if (i > 0) break; // streak broken
+    }
+    return count;
+  })();
+
+  return (
+    <div className="rounded-xl border border-accent/20 bg-accent/5 p-3 md:p-5 transition-all duration-300 hover:scale-[1.02]">
+      <div className="flex items-center gap-2 md:gap-3 mb-2 md:mb-3">
+        <div className="w-7 h-7 md:w-9 md:h-9 rounded-lg bg-secondary flex items-center justify-center">
+          <Flame className="w-3.5 h-3.5 md:w-4.5 md:h-4.5 text-accent" />
+        </div>
+        <span className="text-xs md:text-sm text-muted-foreground font-medium">Study Streak</span>
+      </div>
+      <p className="text-xl md:text-3xl font-display font-bold">{streak} {streak === 1 ? "day" : "days"}</p>
+      <p className="text-[10px] md:text-xs text-muted-foreground mt-1">
+        {streak >= 7 ? "🔥 You're on fire!" : streak >= 3 ? "Keep it up!" : "Start your streak today!"}
+      </p>
     </div>
   );
 }
@@ -116,11 +171,21 @@ const Index = () => {
         </Button>
       </div>
 
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4">
+      {/* Daily Study Tip */}
+      <div className="flex items-start gap-3 p-4 rounded-xl border border-primary/20 bg-primary/5">
+        <Lightbulb className="w-5 h-5 text-primary shrink-0 mt-0.5" />
+        <div>
+          <p className="text-xs font-semibold text-primary mb-1">Daily Study Tip</p>
+          <p className="text-sm text-muted-foreground leading-relaxed">{getDailyTip()}</p>
+        </div>
+      </div>
+
+      <div className="grid grid-cols-2 lg:grid-cols-5 gap-3 md:gap-4">
         <StatCard icon={CalendarDays} label="Today's Tasks" value={`${completedToday}/${todaysTasks.length}`} sublabel="tasks completed" variant="primary" />
         <StatCard icon={Clock} label="Study Time" value={`${Math.round(totalMinutesToday / 60)}h ${totalMinutesToday % 60}m`} sublabel="today" variant="default" />
         <StatCard icon={TrendingUp} label="Weekly Hours" value={`${totalHoursWeek}h`} sublabel="this week" variant="accent" />
-        <StatCard icon={CheckCircle2} label="Completion Rate" value={`${tasks.length > 0 ? Math.round((tasks.filter((t) => t.status === "completed").length / tasks.length) * 100) : 0}%`} sublabel="overall" variant="success" />
+        <StatCard icon={CheckCircle2} label="Completion" value={`${tasks.length > 0 ? Math.round((tasks.filter((t) => t.status === "completed").length / tasks.length) * 100) : 0}%`} sublabel="overall" variant="success" />
+        <StreakCard tasks={tasks} />
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-5 gap-4 md:gap-6">
