@@ -310,6 +310,37 @@
   }
 }
 
+/* Accessibility: Font sizes */
+.text-size-normal { font-size: 100%; }
+.text-size-large { font-size: 112.5%; }
+.text-size-xl { font-size: 125%; }
+
+/* Accessibility: Reduced motion */
+.reduce-motion *,
+.reduce-motion *::before,
+.reduce-motion *::after {
+  animation-duration: 0.01ms !important;
+  animation-iteration-count: 1 !important;
+  transition-duration: 0.01ms !important;
+  scroll-behavior: auto !important;
+}
+
+/* Accessibility: High contrast */
+.high-contrast {
+  --muted-foreground: 210 30% 75%;
+  --border: 210 20% 30%;
+}
+.high-contrast.light {
+  --muted-foreground: 220 15% 30%;
+  --border: 220 15% 50%;
+}
+
+/* Accessibility: Dyslexic-friendly font */
+.dyslexic-font,
+.dyslexic-font * {
+  font-family: 'OpenDyslexic', 'DM Sans', sans-serif !important;
+}
+
 /* Smooth dialog & popover animations */
 [data-state="open"][data-radix-dialog-overlay],
 [data-state="open"][role="dialog"] {
