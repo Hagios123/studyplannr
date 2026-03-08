@@ -91,6 +91,7 @@ export default function Groups() {
   const [noteContent, setNoteContent] = useState("");
   const [addMemberId, setAddMemberId] = useState("");
   const [uploading, setUploading] = useState(false);
+  const [groupSearch, setGroupSearch] = useState("");
 
   const fetchAll = useCallback(async () => {
     if (!user) return;
