@@ -736,3 +736,49 @@
   font-size: 0.65em;
   border: 1px solid hsl(var(--neon-glow) / 0.3);
 }
+
+/* Cyberpunk: numbers / stats */
+.cyber-number {
+  font-family: 'Orbitron', 'Space Grotesk', monospace;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.08em;
+  text-shadow: 0 0 10px hsl(var(--neon-glow) / 0.6), 0 0 20px hsl(var(--neon-glow) / 0.3);
+  color: hsl(var(--primary));
+  position: relative;
+}
+
+.cyber-number::after {
+  content: '';
+  position: absolute;
+  bottom: -2px;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, hsl(var(--neon-glow) / 0.5), transparent);
+}
+
+/* Apply cyber-number globally in cyberpunk mode to tabular-nums displays */
+.ui-cyberpunk .tabular-nums,
+.ui-cyberpunk [class*="font-display"][class*="font-bold"] {
+  font-family: 'Orbitron', 'Space Grotesk', monospace !important;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.06em;
+  text-shadow: 0 0 8px hsl(var(--neon-glow) / 0.5), 0 0 16px hsl(var(--neon-glow) / 0.2);
+}
+
+/* Cyberpunk: large stat numbers get extra glow */
+.ui-cyberpunk .text-2xl.font-display,
+.ui-cyberpunk .text-3xl.font-display,
+.ui-cyberpunk .text-xl.font-display {
+  text-shadow: 0 0 12px hsl(var(--neon-glow) / 0.7), 0 0 24px hsl(var(--neon-glow) / 0.3), 0 0 48px hsl(var(--neon-glow) / 0.1);
+  color: hsl(var(--primary));
+  animation: neon-flicker 4s linear infinite;
+}
+
+/* Cyberpunk: timer display */
+.ui-cyberpunk .text-3xl.tabular-nums,
+.ui-cyberpunk .text-5xl.tabular-nums {
+  text-shadow: 0 0 15px hsl(var(--neon-glow) / 0.8), 0 0 30px hsl(var(--neon-glow) / 0.4), 0 0 60px hsl(var(--neon-glow) / 0.15);
+  border-bottom: 1px solid hsl(var(--neon-glow) / 0.3);
+  padding-bottom: 4px;
+}
