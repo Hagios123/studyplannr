@@ -27,7 +27,7 @@ export default function Auth() {
           },
         });
         if (error) throw error;
-        toast({ title: "Account created!", description: "Welcome to NovaStudy." });
+        toast({ title: "Account created!", description: "Welcome to Study AI." });
       } else {
         const { error } = await supabase.auth.signInWithPassword({ email, password });
         if (error) throw error;
