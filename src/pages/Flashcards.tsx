@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect, useCallback } from "react";
 import { useStudyStore } from "@/stores/useStudyStore";
 import { Layers, RotateCw, Check, ChevronLeft, ChevronRight, Clock, Sparkles, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
