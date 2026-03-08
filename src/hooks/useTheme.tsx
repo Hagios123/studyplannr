@@ -93,6 +93,9 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
     root.classList.toggle("sr-hints", screenReaderHints);
     root.classList.toggle("large-cursor", largeCursor);
     root.classList.toggle("ui-cyberpunk", uiStyle === "cyberpunk");
+    root.classList.toggle("ui-retro", uiStyle === "retro");
+    root.classList.toggle("ui-glass", uiStyle === "glass");
+    root.classList.toggle("ui-minimal", uiStyle === "minimal");
   }, [resolvedMode, colorTheme, fontSize, reducedMotion, highContrast, dyslexicFont, lineSpacing, focusHighlight, colorBlindMode, screenReaderHints, largeCursor, uiStyle]);
 
   const persist = (key: string, val: string) => localStorage.setItem(key, val);
