@@ -1,9 +1,10 @@
 import { useState, useEffect, useCallback } from "react";
+import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import {
   Users, Plus, Trash2, Check, Target, UserPlus, FileText, Upload, Download,
-  Loader2, ChevronLeft, X, Search, Globe,
+  Loader2, ChevronLeft, X, Search, Globe, MessageCircle,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -67,6 +68,7 @@ interface FriendProfile {
 }
 
 export default function Groups() {
+  const navigate = useNavigate();
   const { user } = useAuth();
   const { toast } = useToast();
 
@@ -381,11 +383,16 @@ export default function Groups() {
                   <p className="text-sm text-muted-foreground mt-1">{selectedGroup.description}</p>
                 )}
               </div>
-              {isOwner && (
-                <Button variant="ghost" size="icon" className="text-muted-foreground hover:text-destructive" onClick={() => handleDelete(selectedGroup.id)}>
-                  <Trash2 className="w-4 h-4" />
+              <div className="flex gap-1">
+                <Button variant="outline" size="sm" className="gap-1.5" onClick={() => navigate(`/group-chat/${selectedGroup.id}`)}>
+                  <MessageCircle className="w-3.5 h-3.5" /> Chat
                 </Button>
-              )}
+                {isOwner && (
+                  <Button variant="ghost" size="icon" className="text-muted-foreground hover:text-destructive" onClick={() => handleDelete(selectedGroup.id)}>
+                    <Trash2 className="w-4 h-4" />
+                  </Button>
+                )}
+              </div>
             </div>
 
             {/* Tabs */}

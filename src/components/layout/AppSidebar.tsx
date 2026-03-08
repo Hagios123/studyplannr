@@ -25,6 +25,8 @@ import {
   Library,
   Users,
   UserPlus,
+  User,
+  MessageCircle,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useTheme } from "@/hooks/useTheme";
@@ -48,6 +50,7 @@ const toolItems = [
   { to: "/resources", icon: Library, label: "Library" },
   { to: "/groups", icon: Users, label: "Groups" },
   { to: "/friends", icon: UserPlus, label: "Friends" },
+  { to: "/profile", icon: User, label: "Profile" },
   { to: "/analytics", icon: BarChart3, label: "Stats" },
 ];
 

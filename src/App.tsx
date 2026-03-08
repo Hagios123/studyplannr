@@ -21,6 +21,9 @@ import Resources from "./pages/Resources";
 import Groups from "./pages/Groups";
 import Auth from "./pages/Auth";
 import Friends from "./pages/Friends";
+import Profile from "./pages/Profile";
+import Chat from "./pages/Chat";
+import GroupChat from "./pages/GroupChat";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -42,6 +45,9 @@ function AnimatedRoutes() {
         <Route path="/resources" element={<PageTransition><Resources /></PageTransition>} />
         <Route path="/groups" element={<PageTransition><Groups /></PageTransition>} />
         <Route path="/friends" element={<PageTransition><Friends /></PageTransition>} />
+        <Route path="/profile" element={<PageTransition><Profile /></PageTransition>} />
+        <Route path="/chat/:recipientId" element={<PageTransition><Chat /></PageTransition>} />
+        <Route path="/group-chat/:groupId" element={<PageTransition><GroupChat /></PageTransition>} />
         <Route path="*" element={<PageTransition><NotFound /></PageTransition>} />
       </Routes>
     </AnimatePresence>
