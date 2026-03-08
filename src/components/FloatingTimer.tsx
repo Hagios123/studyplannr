@@ -3,6 +3,7 @@ import { Timer, Play, Pause, RotateCcw, Coffee, X, Settings2 } from "lucide-reac
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useStudyStore } from "@/stores/useStudyStore";
+import { useGamificationStore } from "@/stores/useGamificationStore";
 import { motion, AnimatePresence } from "framer-motion";
 
 type Phase = "focus" | "break";
