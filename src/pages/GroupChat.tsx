@@ -2,12 +2,11 @@ import { useState, useEffect, useRef, useCallback } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
-import {
-  Send, ChevronLeft, Loader2, MessageCircle, Hash, Plus, BookOpen, Link2, FileText,
-} from "lucide-react";
+import { Send, ChevronLeft, Loader2, Hash, Brain } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import ChannelSidebar, { DEFAULT_CHANNELS, ChannelItem } from "@/components/group-chat/ChannelSidebar";
+import GroupQuizPanel from "@/components/group-chat/GroupQuizPanel";
 
 interface Message {
   id: string;
@@ -32,13 +31,6 @@ interface GroupRow {
   description: string;
 }
 
-const DEFAULT_CHANNELS = [
-  { name: "general", icon: MessageCircle, label: "General" },
-  { name: "notes", icon: FileText, label: "Notes" },
-  { name: "links", icon: Link2, label: "Links & Resources" },
-  { name: "study", icon: BookOpen, label: "Study Discussion" },
-];
-
 export default function GroupChat() {
   const { groupId } = useParams<{ groupId: string }>();
   const { user } = useAuth();
@@ -51,16 +43,20 @@ export default function GroupChat() {
   const [group, setGroup] = useState<GroupRow | null>(null);
   const [profiles, setProfiles] = useState<Record<string, Profile>>({});
   const [channel, setChannel] = useState("general");
-  const [customChannels, setCustomChannels] = useState<string[]>([]);
+  const [subjectChannels, setSubjectChannels] = useState<ChannelItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [sending, setSending] = useState(false);
-  const [newChannelName, setNewChannelName] = useState("");
-  const [channelDialogOpen, setChannelDialogOpen] = useState(false);
+  const [showQuiz, setShowQuiz] = useState(false);
 
-  const allChannels = [
-    ...DEFAULT_CHANNELS,
-    ...customChannels.map((c) => ({ name: c, icon: Hash, label: c })),
-  ];
+  const allChannels: ChannelItem[] = [...DEFAULT_CHANNELS, ...subjectChannels];
+
+  const fetchSubjectChannels = useCallback(async () => {
+    if (!groupId) return;
+    const { data } = await supabase.from("group_channels" as any).select("*").eq("group_id", groupId).order("created_at");
+    if (data) {
+      setSubjectChannels((data as any[]).map((c) => ({ name: c.name, label: c.label, icon: Hash, isSubject: true, id: c.id })));
+    }
+  }, [groupId]);
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -68,24 +64,14 @@ export default function GroupChat() {
 
   const fetchMessages = useCallback(async () => {
     if (!groupId) return;
-    const { data } = await supabase
-      .from("group_messages")
-      .select("*")
-      .eq("group_id", groupId)
-      .eq("channel", channel)
-      .order("created_at", { ascending: true })
-      .limit(200);
-
+    const { data } = await supabase.from("group_messages").select("*")
+      .eq("group_id", groupId).eq("channel", channel)
+      .order("created_at", { ascending: true }).limit(200);
     const msgs = (data || []) as Message[];
     setMessages(msgs);
-
-    // Fetch profiles
     const senderIds = new Set(msgs.map((m) => m.sender_id));
     if (senderIds.size > 0) {
-      const { data: profs } = await supabase
-        .from("profiles")
-        .select("id, username, display_name, avatar_url")
-        .in("id", Array.from(senderIds));
+      const { data: profs } = await supabase.from("profiles").select("id, username, display_name, avatar_url").in("id", Array.from(senderIds));
       if (profs) {
         const map: Record<string, Profile> = { ...profiles };
         (profs as any[]).forEach((p) => { map[p.id] = p; });
@@ -98,76 +84,37 @@ export default function GroupChat() {
     if (!groupId) return;
     supabase.from("study_groups").select("*").eq("id", groupId).single()
       .then(({ data }) => { if (data) setGroup(data as any); });
-
-    // Discover custom channels
-    supabase
-      .from("group_messages")
-      .select("channel")
-      .eq("group_id", groupId)
-      .then(({ data }) => {
-        if (data) {
-          const defaultNames = DEFAULT_CHANNELS.map((c) => c.name);
-          const customs = [...new Set((data as any[]).map((d) => d.channel).filter((c: string) => !defaultNames.includes(c)))];
-          setCustomChannels(customs);
-        }
-      });
+    fetchSubjectChannels();
   }, [groupId]);
 
-  useEffect(() => {
-    fetchMessages().then(() => setLoading(false));
-  }, [fetchMessages]);
-
+  useEffect(() => { fetchMessages().then(() => setLoading(false)); }, [fetchMessages]);
   useEffect(() => { scrollToBottom(); }, [messages]);
 
   // Realtime
   useEffect(() => {
     if (!groupId) return;
-    const sub = supabase
-      .channel(`group-chat-${groupId}-${channel}`)
-      .on(
-        "postgres_changes",
-        { event: "INSERT", schema: "public", table: "group_messages" },
-        (payload) => {
-          const msg = payload.new as Message;
-          if (msg.group_id === groupId && msg.channel === channel) {
-            setMessages((prev) => [...prev, msg]);
-            // Fetch sender profile if needed
-            if (!profiles[msg.sender_id]) {
-              supabase.from("profiles").select("id, username, display_name, avatar_url")
-                .eq("id", msg.sender_id).single()
-                .then(({ data }) => {
-                  if (data) setProfiles((prev) => ({ ...prev, [msg.sender_id]: data as any }));
-                });
-            }
+    const sub = supabase.channel(`group-chat-${groupId}-${channel}`)
+      .on("postgres_changes", { event: "INSERT", schema: "public", table: "group_messages" }, (payload) => {
+        const msg = payload.new as Message;
+        if (msg.group_id === groupId && msg.channel === channel) {
+          setMessages((prev) => [...prev, msg]);
+          if (!profiles[msg.sender_id]) {
+            supabase.from("profiles").select("id, username, display_name, avatar_url")
+              .eq("id", msg.sender_id).single()
+              .then(({ data }) => { if (data) setProfiles((prev) => ({ ...prev, [msg.sender_id]: data as any })); });
           }
         }
-      )
-      .subscribe();
-
+      }).subscribe();
     return () => { supabase.removeChannel(sub); };
   }, [groupId, channel]);
 
   const handleSend = async () => {
     if (!newMessage.trim() || !user || !groupId || sending) return;
     setSending(true);
-    await supabase.from("group_messages").insert({
-      group_id: groupId,
-      sender_id: user.id,
-      content: newMessage.trim(),
-      channel,
-    });
+    await supabase.from("group_messages").insert({ group_id: groupId, sender_id: user.id, content: newMessage.trim(), channel });
     setNewMessage("");
     inputRef.current?.focus();
     setSending(false);
-  };
-
-  const handleAddChannel = () => {
-    const name = newChannelName.trim().toLowerCase().replace(/\s+/g, "-").replace(/[^a-z0-9-]/g, "");
-    if (!name || allChannels.some((c) => c.name === name)) return;
-    setCustomChannels((prev) => [...prev, name]);
-    setChannel(name);
-    setNewChannelName("");
-    setChannelDialogOpen(false);
   };
 
   const formatTime = (dateStr: string) => {
@@ -178,66 +125,27 @@ export default function GroupChat() {
     return d.toLocaleDateString([], { month: "short", day: "numeric" }) + " " + d.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
   };
 
+  // Quiz panel
+  if (showQuiz && groupId) {
+    return (
+      <div className="flex h-[calc(100vh-4rem)] md:h-[calc(100vh-2rem)]">
+        <ChannelSidebar groupId={groupId} groupName={group?.name || "Group"} channel={channel}
+          setChannel={(c) => { setChannel(c); setShowQuiz(false); }}
+          subjectChannels={subjectChannels} onChannelCreated={fetchSubjectChannels} onQuizOpen={() => setShowQuiz(true)} />
+        <div className="flex-1"><GroupQuizPanel groupId={groupId} onClose={() => setShowQuiz(false)} /></div>
+      </div>
+    );
+  }
+
   return (
     <div className="flex h-[calc(100vh-4rem)] md:h-[calc(100vh-2rem)]">
-      {/* Channel sidebar */}
-      <div className="w-[180px] border-r border-border shrink-0 flex flex-col overflow-hidden hidden md:flex">
-        <div className="p-3 border-b border-border">
-          <Button variant="ghost" size="sm" className="w-full justify-start gap-2 text-xs" onClick={() => navigate("/groups")}>
-            <ChevronLeft className="w-3.5 h-3.5" /> Back to Groups
-          </Button>
-        </div>
-        <div className="p-2 border-b border-border">
-          <p className="text-xs font-bold text-muted-foreground uppercase tracking-wider px-2 mb-1">
-            {group?.name || "Group"}
-          </p>
-        </div>
-        <div className="flex-1 overflow-y-auto p-2 space-y-0.5">
-          {allChannels.map((ch) => (
-            <button
-              key={ch.name}
-              onClick={() => setChannel(ch.name)}
-              className={`w-full flex items-center gap-2 px-2.5 py-1.5 rounded-lg text-xs font-medium transition-all ${
-                channel === ch.name
-                  ? "bg-primary/10 text-primary"
-                  : "text-muted-foreground hover:text-foreground hover:bg-secondary"
-              }`}
-            >
-              <ch.icon className="w-3.5 h-3.5 shrink-0" />
-              <span className="truncate">{ch.label}</span>
-            </button>
-          ))}
-        </div>
-        <div className="p-2 border-t border-border">
-          <Dialog open={channelDialogOpen} onOpenChange={setChannelDialogOpen}>
-            <DialogTrigger asChild>
-              <Button variant="ghost" size="sm" className="w-full gap-1.5 text-xs text-muted-foreground">
-                <Plus className="w-3.5 h-3.5" /> Add Channel
-              </Button>
-            </DialogTrigger>
-            <DialogContent className="max-w-xs">
-              <DialogHeader><DialogTitle className="text-sm">New Channel</DialogTitle></DialogHeader>
-              <div className="space-y-3 pt-2">
-                <Input
-                  placeholder="e.g. math, physics, exam-prep"
-                  value={newChannelName}
-                  onChange={(e) => setNewChannelName(e.target.value)}
-                  onKeyDown={(e) => e.key === "Enter" && handleAddChannel()}
-                  autoFocus
-                />
-                <p className="text-xs text-muted-foreground">Create a subject-specific channel for focused discussion.</p>
-                <Button onClick={handleAddChannel} disabled={!newChannelName.trim()} className="w-full" size="sm">
-                  Create Channel
-                </Button>
-              </div>
-            </DialogContent>
-          </Dialog>
-        </div>
-      </div>
+      {groupId && (
+        <ChannelSidebar groupId={groupId} groupName={group?.name || "Group"} channel={channel} setChannel={setChannel}
+          subjectChannels={subjectChannels} onChannelCreated={fetchSubjectChannels} onQuizOpen={() => setShowQuiz(true)} />
+      )}
 
-      {/* Chat area */}
       <div className="flex-1 flex flex-col min-w-0">
-        {/* Mobile header */}
+        {/* Header */}
         <div className="flex items-center gap-3 p-3 border-b border-border shrink-0">
           <Button variant="ghost" size="icon" onClick={() => navigate("/groups")} className="md:hidden shrink-0">
             <ChevronLeft className="w-5 h-5" />
@@ -246,23 +154,21 @@ export default function GroupChat() {
           <p className="font-display font-semibold text-sm truncate">
             {allChannels.find((c) => c.name === channel)?.label || channel}
           </p>
-          <span className="text-xs text-muted-foreground ml-auto hidden sm:block">
-            {group?.name}
-          </span>
+          <div className="ml-auto flex items-center gap-2">
+            <Button variant="ghost" size="sm" className="md:hidden text-xs" onClick={() => setShowQuiz(true)}>
+              <Brain className="w-3.5 h-3.5 mr-1" /> Quiz
+            </Button>
+            <span className="text-xs text-muted-foreground hidden sm:block">{group?.name}</span>
+          </div>
         </div>
 
         {/* Mobile channel selector */}
         <div className="md:hidden flex gap-1 p-2 overflow-x-auto border-b border-border">
           {allChannels.map((ch) => (
-            <button
-              key={ch.name}
-              onClick={() => setChannel(ch.name)}
+            <button key={ch.name} onClick={() => setChannel(ch.name)}
               className={`flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-medium whitespace-nowrap transition-all ${
-                channel === ch.name
-                  ? "bg-primary text-primary-foreground"
-                  : "bg-secondary text-muted-foreground"
-              }`}
-            >
+                channel === ch.name ? "bg-primary text-primary-foreground" : "bg-secondary text-muted-foreground"
+              }`}>
               <ch.icon className="w-3 h-3" />
               {ch.label}
             </button>
@@ -272,9 +178,7 @@ export default function GroupChat() {
         {/* Messages */}
         <div className="flex-1 overflow-y-auto px-4 py-3 space-y-3">
           {loading ? (
-            <div className="flex items-center justify-center py-20">
-              <Loader2 className="w-5 h-5 animate-spin text-muted-foreground" />
-            </div>
+            <div className="flex items-center justify-center py-20"><Loader2 className="w-5 h-5 animate-spin text-muted-foreground" /></div>
           ) : messages.length === 0 ? (
             <div className="text-center py-20 text-muted-foreground">
               <Hash className="w-10 h-10 mx-auto mb-3 opacity-30" />
@@ -319,21 +223,11 @@ export default function GroupChat() {
 
         {/* Input */}
         <div className="flex items-center gap-2 p-3 border-t border-border shrink-0">
-          <Input
-            ref={inputRef}
-            value={newMessage}
-            onChange={(e) => setNewMessage(e.target.value)}
+          <Input ref={inputRef} value={newMessage} onChange={(e) => setNewMessage(e.target.value)}
             onKeyDown={(e) => e.key === "Enter" && !e.shiftKey && handleSend()}
             placeholder={`Message #${allChannels.find((c) => c.name === channel)?.label || channel}...`}
-            className="flex-1"
-            autoFocus
-          />
-          <Button
-            size="icon"
-            onClick={handleSend}
-            disabled={!newMessage.trim() || sending}
-            className="shrink-0"
-          >
+            className="flex-1" autoFocus />
+          <Button size="icon" onClick={handleSend} disabled={!newMessage.trim() || sending} className="shrink-0">
             <Send className="w-4 h-4" />
           </Button>
         </div>
