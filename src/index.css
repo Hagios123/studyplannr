@@ -225,50 +225,8 @@
     --shadow-glow: 0 0 30px -5px hsl(220, 15%, 60%, 0.15);
   }
 
-  /* ========== LIGHT MODE ========== */
-  .light {
-    --background: 0 0% 98%;
-    --foreground: 222 47% 11%;
-    --card: 0 0% 100%;
-    --card-foreground: 222 47% 11%;
-    --popover: 0 0% 100%;
-    --popover-foreground: 222 47% 11%;
-    --primary: 187 80% 42%;
-    --primary-foreground: 0 0% 100%;
-    --secondary: 220 14% 92%;
-    --secondary-foreground: 222 47% 11%;
-    --muted: 220 14% 92%;
-    --muted-foreground: 220 10% 42%;
-    --accent: 38 92% 50%;
-    --accent-foreground: 0 0% 100%;
-    --destructive: 0 72% 50%;
-    --destructive-foreground: 0 0% 100%;
-    --border: 220 13% 87%;
-    --input: 220 13% 87%;
-    --ring: 187 80% 42%;
-    --sidebar-background: 220 14% 96%;
-    --sidebar-foreground: 220 10% 35%;
-    --sidebar-primary: 187 80% 42%;
-    --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 220 14% 90%;
-    --sidebar-accent-foreground: 222 47% 11%;
-    --sidebar-border: 220 13% 87%;
-    --sidebar-ring: 187 80% 42%;
-    --success: 152 60% 38%;
-    --success-foreground: 0 0% 100%;
-    --warning: 38 92% 50%;
-    --warning-foreground: 0 0% 100%;
-    --chart-1: 187 80% 42%;
-    --chart-2: 38 92% 50%;
-    --chart-3: 152 60% 38%;
-    --chart-4: 270 60% 55%;
-    --chart-5: 340 65% 50%;
-    --gradient-primary: linear-gradient(135deg, hsl(187, 80%, 42%), hsl(210, 90%, 45%));
-    --gradient-accent: linear-gradient(135deg, hsl(38, 92%, 50%), hsl(25, 95%, 50%));
-    --shadow-glow: 0 0 30px -5px hsl(187, 80%, 42%, 0.12);
-  }
-
-  /* Light mode color overrides */
+  /* Light mode color overrides (match both :root and .light for each color theme) */
+  :root[data-color-theme="green"],
   .light[data-color-theme="green"] {
     --primary: 152 72% 36%;
     --primary-foreground: 0 0% 100%;
@@ -281,6 +239,7 @@
     --shadow-glow: 0 0 30px -5px hsl(152, 72%, 36%, 0.12);
   }
 
+  :root[data-color-theme="red"],
   .light[data-color-theme="red"] {
     --primary: 0 78% 48%;
     --primary-foreground: 0 0% 100%;
@@ -293,6 +252,7 @@
     --shadow-glow: 0 0 30px -5px hsl(0, 78%, 48%, 0.12);
   }
 
+  :root[data-color-theme="grey"],
   .light[data-color-theme="grey"] {
     --primary: 220 15% 45%;
     --primary-foreground: 0 0% 100%;
