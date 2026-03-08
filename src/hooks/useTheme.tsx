@@ -3,6 +3,7 @@ import { createContext, useContext, useEffect, useState } from "react";
 type Mode = "light" | "dark" | "system";
 type ColorTheme = "blue" | "green" | "red" | "grey";
 type FontSize = "normal" | "large" | "xl";
+type LineSpacing = "compact" | "normal" | "relaxed";
 
 interface ThemeContext {
   mode: Mode;
@@ -18,22 +19,31 @@ interface ThemeContext {
   setHighContrast: (v: boolean) => void;
   dyslexicFont: boolean;
   setDyslexicFont: (v: boolean) => void;
+  lineSpacing: LineSpacing;
+  setLineSpacing: (v: LineSpacing) => void;
+  focusHighlight: boolean;
+  setFocusHighlight: (v: boolean) => void;
+  colorBlindMode: boolean;
+  setColorBlindMode: (v: boolean) => void;
+  screenReaderHints: boolean;
+  setScreenReaderHints: (v: boolean) => void;
+  largeCursor: boolean;
+  setLargeCursor: (v: boolean) => void;
 }
 
 const ThemeCtx = createContext<ThemeContext>({
-  mode: "system",
-  setMode: () => {},
-  colorTheme: "blue",
-  setColorTheme: () => {},
+  mode: "system", setMode: () => {},
+  colorTheme: "blue", setColorTheme: () => {},
   resolvedMode: "dark",
-  fontSize: "normal",
-  setFontSize: () => {},
-  reducedMotion: false,
-  setReducedMotion: () => {},
-  highContrast: false,
-  setHighContrast: () => {},
-  dyslexicFont: false,
-  setDyslexicFont: () => {},
+  fontSize: "normal", setFontSize: () => {},
+  reducedMotion: false, setReducedMotion: () => {},
+  highContrast: false, setHighContrast: () => {},
+  dyslexicFont: false, setDyslexicFont: () => {},
+  lineSpacing: "normal", setLineSpacing: () => {},
+  focusHighlight: false, setFocusHighlight: () => {},
+  colorBlindMode: false, setColorBlindMode: () => {},
+  screenReaderHints: false, setScreenReaderHints: () => {},
+  largeCursor: false, setLargeCursor: () => {},
 });
 
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
@@ -43,6 +53,11 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
   const [reducedMotion, setReducedMotionState] = useState(() => localStorage.getItem("studyai_reduced_motion") === "true");
   const [highContrast, setHighContrastState] = useState(() => localStorage.getItem("studyai_high_contrast") === "true");
   const [dyslexicFont, setDyslexicFontState] = useState(() => localStorage.getItem("studyai_dyslexic") === "true");
+  const [lineSpacing, setLineSpacingState] = useState<LineSpacing>(() => (localStorage.getItem("studyai_linespacing") as LineSpacing) || "normal");
+  const [focusHighlight, setFocusHighlightState] = useState(() => localStorage.getItem("studyai_focus_highlight") === "true");
+  const [colorBlindMode, setColorBlindModeState] = useState(() => localStorage.getItem("studyai_colorblind") === "true");
+  const [screenReaderHints, setScreenReaderHintsState] = useState(() => localStorage.getItem("studyai_sr_hints") === "true");
+  const [largeCursor, setLargeCursorState] = useState(() => localStorage.getItem("studyai_large_cursor") === "true");
   const [systemDark, setSystemDark] = useState(() => window.matchMedia("(prefers-color-scheme: dark)").matches);
 
   useEffect(() => {
@@ -60,32 +75,41 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
     root.classList.add(resolvedMode);
     root.setAttribute("data-color-theme", colorTheme);
 
-    // Font size
     root.classList.remove("text-size-normal", "text-size-large", "text-size-xl");
     root.classList.add(`text-size-${fontSize}`);
-
-    // Reduced motion
+    root.classList.remove("line-spacing-compact", "line-spacing-normal", "line-spacing-relaxed");
+    root.classList.add(`line-spacing-${lineSpacing}`);
     root.classList.toggle("reduce-motion", reducedMotion);
-
-    // High contrast
     root.classList.toggle("high-contrast", highContrast);
-
-    // Dyslexic font
     root.classList.toggle("dyslexic-font", dyslexicFont);
-  }, [resolvedMode, colorTheme, fontSize, reducedMotion, highContrast, dyslexicFont]);
+    root.classList.toggle("focus-highlight", focusHighlight);
+    root.classList.toggle("colorblind-mode", colorBlindMode);
+    root.classList.toggle("sr-hints", screenReaderHints);
+    root.classList.toggle("large-cursor", largeCursor);
+  }, [resolvedMode, colorTheme, fontSize, reducedMotion, highContrast, dyslexicFont, lineSpacing, focusHighlight, colorBlindMode, screenReaderHints, largeCursor]);
 
-  const setMode = (m: Mode) => { localStorage.setItem("studyai_mode", m); setModeState(m); };
-  const setColorTheme = (c: ColorTheme) => { localStorage.setItem("studyai_color", c); setColorThemeState(c); };
-  const setFontSize = (s: FontSize) => { localStorage.setItem("studyai_fontsize", s); setFontSizeState(s); };
-  const setReducedMotion = (v: boolean) => { localStorage.setItem("studyai_reduced_motion", String(v)); setReducedMotionState(v); };
-  const setHighContrast = (v: boolean) => { localStorage.setItem("studyai_high_contrast", String(v)); setHighContrastState(v); };
-  const setDyslexicFont = (v: boolean) => { localStorage.setItem("studyai_dyslexic", String(v)); setDyslexicFontState(v); };
+  const persist = (key: string, val: string) => localStorage.setItem(key, val);
+
+  const setMode = (m: Mode) => { persist("studyai_mode", m); setModeState(m); };
+  const setColorTheme = (c: ColorTheme) => { persist("studyai_color", c); setColorThemeState(c); };
+  const setFontSize = (s: FontSize) => { persist("studyai_fontsize", s); setFontSizeState(s); };
+  const setReducedMotion = (v: boolean) => { persist("studyai_reduced_motion", String(v)); setReducedMotionState(v); };
+  const setHighContrast = (v: boolean) => { persist("studyai_high_contrast", String(v)); setHighContrastState(v); };
+  const setDyslexicFont = (v: boolean) => { persist("studyai_dyslexic", String(v)); setDyslexicFontState(v); };
+  const setLineSpacing = (v: LineSpacing) => { persist("studyai_linespacing", v); setLineSpacingState(v); };
+  const setFocusHighlight = (v: boolean) => { persist("studyai_focus_highlight", String(v)); setFocusHighlightState(v); };
+  const setColorBlindMode = (v: boolean) => { persist("studyai_colorblind", String(v)); setColorBlindModeState(v); };
+  const setScreenReaderHints = (v: boolean) => { persist("studyai_sr_hints", String(v)); setScreenReaderHintsState(v); };
+  const setLargeCursor = (v: boolean) => { persist("studyai_large_cursor", String(v)); setLargeCursorState(v); };
 
   return (
     <ThemeCtx.Provider value={{
       mode, setMode, colorTheme, setColorTheme, resolvedMode,
       fontSize, setFontSize, reducedMotion, setReducedMotion,
       highContrast, setHighContrast, dyslexicFont, setDyslexicFont,
+      lineSpacing, setLineSpacing, focusHighlight, setFocusHighlight,
+      colorBlindMode, setColorBlindMode, screenReaderHints, setScreenReaderHints,
+      largeCursor, setLargeCursor,
     }}>
       {children}
     </ThemeCtx.Provider>

@@ -3,7 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import {
   UserPlus, Users, Search, Check, X, Loader2, UserCheck, UserMinus,
-  MessageCircle, Clock, Send, Inbox,
+  MessageCircle, Clock, Send, Inbox, Ban, ShieldOff,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -25,7 +25,7 @@ interface FriendshipRow {
   created_at: string;
 }
 
-type Tab = "friends" | "received" | "sent";
+type Tab = "friends" | "received" | "sent" | "blocked";
 
 export default function Friends() {
   const { user } = useAuth();
@@ -37,6 +37,8 @@ export default function Friends() {
   const [searching, setSearching] = useState(false);
   const [friendships, setFriendships] = useState<FriendshipRow[]>([]);
   const [friendProfiles, setFriendProfiles] = useState<Record<string, FriendProfile>>({});
+  const [blockedUsers, setBlockedUsers] = useState<{ id: string; blocked_id: string }[]>([]);
+  const [blockedProfiles, setBlockedProfiles] = useState<Record<string, FriendProfile>>({});
   const [loading, setLoading] = useState(true);
 
   const fetchFriendships = async () => {
@@ -65,6 +67,22 @@ export default function Friends() {
         }
       }
     }
+
+    // Fetch blocked users
+    const { data: blocks } = await supabase.from("blocked_users" as any).select("id, blocked_id").eq("blocker_id", user.id);
+    if (blocks && (blocks as any[]).length > 0) {
+      setBlockedUsers(blocks as any[]);
+      const blockIds = (blocks as any[]).map((b: any) => b.blocked_id);
+      const { data: bProfs } = await supabase.from("profiles").select("id, username, display_name, avatar_url").in("id", blockIds);
+      if (bProfs) {
+        const map: Record<string, FriendProfile> = {};
+        (bProfs as any[]).forEach((p) => { map[p.id] = p; });
+        setBlockedProfiles(map);
+      }
+    } else {
+      setBlockedUsers([]);
+    }
+
     setLoading(false);
   };
 
@@ -85,17 +103,9 @@ export default function Friends() {
 
   const sendRequest = async (friendId: string) => {
     if (!user) return;
-    const { error } = await supabase.from("friendships").insert({
-      user_id: user.id,
-      friend_id: friendId,
-      status: "pending",
-    });
-    if (error) {
-      toast({ title: "Error", description: error.message, variant: "destructive" });
-    } else {
-      toast({ title: "Friend request sent!" });
-      fetchFriendships();
-    }
+    const { error } = await supabase.from("friendships").insert({ user_id: user.id, friend_id: friendId, status: "pending" });
+    if (error) toast({ title: "Error", description: error.message, variant: "destructive" });
+    else { toast({ title: "Friend request sent!" }); fetchFriendships(); }
   };
 
   const respondRequest = async (id: string, accept: boolean) => {
@@ -115,10 +125,29 @@ export default function Friends() {
     fetchFriendships();
   };
 
+  const blockUser = async (userId: string) => {
+    if (!user) return;
+    await supabase.from("blocked_users" as any).insert({ blocker_id: user.id, blocked_id: userId });
+    // Also remove friendship if exists
+    const friendship = friendships.find((f) =>
+      (f.user_id === userId || f.friend_id === userId)
+    );
+    if (friendship) await supabase.from("friendships").delete().eq("id", friendship.id);
+    toast({ title: "User blocked" });
+    fetchFriendships();
+  };
+
+  const unblockUser = async (blockId: string) => {
+    await supabase.from("blocked_users" as any).delete().eq("id", blockId);
+    toast({ title: "User unblocked" });
+    fetchFriendships();
+  };
+
   const incoming = friendships.filter((f) => f.friend_id === user?.id && f.status === "pending");
   const outgoing = friendships.filter((f) => f.user_id === user?.id && f.status === "pending");
   const accepted = friendships.filter((f) => f.status === "accepted");
   const existingIds = new Set(friendships.map((f) => f.user_id === user?.id ? f.friend_id : f.user_id));
+  const blockedIds = new Set(blockedUsers.map((b) => b.blocked_id));
 
   const Avatar = ({ profile, size = "w-9 h-9" }: { profile?: FriendProfile | null; size?: string }) => (
     <div className={`${size} rounded-full overflow-hidden bg-primary/20 flex items-center justify-center shrink-0`}>
@@ -136,6 +165,7 @@ export default function Friends() {
     { key: "friends", label: "Friends", icon: Users, count: accepted.length },
     { key: "received", label: "Received", icon: Inbox, count: incoming.length },
     { key: "sent", label: "Sent", icon: Send, count: outgoing.length },
+    { key: "blocked", label: "Blocked", icon: Ban, count: blockedUsers.length },
   ];
 
   return (
@@ -150,24 +180,21 @@ export default function Friends() {
       </div>
 
       {/* Search users */}
-      <div className="bg-card border border-border rounded-xl p-4 space-y-3">
+      <div className="cyber-card p-4 space-y-3">
         <h2 className="text-sm font-semibold flex items-center gap-2">
           <Search className="w-4 h-4 text-muted-foreground" /> Find Users
         </h2>
         <div className="flex gap-2">
-          <Input
-            placeholder="Search by username..."
-            value={search}
+          <Input placeholder="Search by username..." value={search}
             onChange={(e) => setSearch(e.target.value)}
-            onKeyDown={(e) => e.key === "Enter" && handleSearch()}
-          />
+            onKeyDown={(e) => e.key === "Enter" && handleSearch()} />
           <Button onClick={handleSearch} disabled={searching} size="sm">
             {searching ? <Loader2 className="w-4 h-4 animate-spin" /> : "Search"}
           </Button>
         </div>
         {searchResults.length > 0 && (
           <div className="space-y-2">
-            {searchResults.map((p) => (
+            {searchResults.filter((p) => !blockedIds.has(p.id)).map((p) => (
               <div key={p.id} className="flex items-center justify-between p-3 rounded-lg bg-secondary/50 border border-border">
                 <div className="flex items-center gap-3">
                   <Avatar profile={p} size="w-8 h-8" />
@@ -176,15 +203,20 @@ export default function Friends() {
                     <p className="text-xs text-muted-foreground">@{p.username}</p>
                   </div>
                 </div>
-                {existingIds.has(p.id) ? (
-                  <span className="text-xs text-muted-foreground flex items-center gap-1">
-                    <UserCheck className="w-3.5 h-3.5" /> Connected
-                  </span>
-                ) : (
-                  <Button size="sm" variant="outline" onClick={() => sendRequest(p.id)} className="gap-1.5">
-                    <UserPlus className="w-3.5 h-3.5" /> Add
+                <div className="flex gap-1">
+                  {existingIds.has(p.id) ? (
+                    <span className="text-xs text-muted-foreground flex items-center gap-1">
+                      <UserCheck className="w-3.5 h-3.5" /> Connected
+                    </span>
+                  ) : (
+                    <Button size="sm" variant="outline" onClick={() => sendRequest(p.id)} className="gap-1.5">
+                      <UserPlus className="w-3.5 h-3.5" /> Add
+                    </Button>
+                  )}
+                  <Button size="icon" variant="ghost" className="w-8 h-8 text-muted-foreground hover:text-destructive" onClick={() => blockUser(p.id)} title="Block user">
+                    <Ban className="w-3.5 h-3.5" />
                   </Button>
-                )}
+                </div>
               </div>
             ))}
           </div>
@@ -234,7 +266,7 @@ export default function Friends() {
                   const otherId = f.user_id === user?.id ? f.friend_id : f.user_id;
                   const profile = friendProfiles[otherId];
                   return (
-                    <div key={f.id} className="flex items-center justify-between p-3 rounded-xl border border-border bg-card">
+                    <div key={f.id} className="flex items-center justify-between p-3 rounded-xl border border-border bg-card cyber-border">
                       <div className="flex items-center gap-3">
                         <Avatar profile={profile} />
                         <div>
@@ -243,22 +275,16 @@ export default function Friends() {
                         </div>
                       </div>
                       <div className="flex gap-1">
-                        <Button
-                          size="icon"
-                          variant="ghost"
-                          className="w-8 h-8 text-muted-foreground hover:text-primary"
-                          onClick={() => navigate(`/chat/${otherId}`)}
-                          title="Message"
-                        >
+                        <Button size="icon" variant="ghost" className="w-8 h-8 text-muted-foreground hover:text-primary"
+                          onClick={() => navigate(`/chat/${otherId}`)} title="Message">
                           <MessageCircle className="w-4 h-4" />
                         </Button>
-                        <Button
-                          size="icon"
-                          variant="ghost"
-                          className="text-muted-foreground hover:text-destructive w-8 h-8"
-                          onClick={() => removeFriend(f.id)}
-                          title="Remove"
-                        >
+                        <Button size="icon" variant="ghost" className="w-8 h-8 text-muted-foreground hover:text-destructive"
+                          onClick={() => blockUser(otherId)} title="Block">
+                          <Ban className="w-3.5 h-3.5" />
+                        </Button>
+                        <Button size="icon" variant="ghost" className="text-muted-foreground hover:text-destructive w-8 h-8"
+                          onClick={() => removeFriend(f.id)} title="Remove">
                           <UserMinus className="w-4 h-4" />
                         </Button>
                       </div>
@@ -334,6 +360,37 @@ export default function Friends() {
                           Cancel
                         </Button>
                       </div>
+                    </div>
+                  );
+                })}
+              </div>
+            )
+          )}
+
+          {/* Blocked tab */}
+          {tab === "blocked" && (
+            blockedUsers.length === 0 ? (
+              <div className="text-center py-16 text-muted-foreground">
+                <Ban className="w-12 h-12 mx-auto mb-3 opacity-30" />
+                <p className="font-display font-semibold">No blocked users</p>
+                <p className="text-sm mt-1">Users you block will appear here.</p>
+              </div>
+            ) : (
+              <div className="space-y-2">
+                {blockedUsers.map((b) => {
+                  const profile = blockedProfiles[b.blocked_id];
+                  return (
+                    <div key={b.id} className="flex items-center justify-between p-3 rounded-xl border border-destructive/20 bg-destructive/5">
+                      <div className="flex items-center gap-3">
+                        <Avatar profile={profile} size="w-8 h-8" />
+                        <div>
+                          <p className="text-sm font-medium">{profile?.display_name || profile?.username || "User"}</p>
+                          <p className="text-xs text-muted-foreground">@{profile?.username}</p>
+                        </div>
+                      </div>
+                      <Button size="sm" variant="outline" onClick={() => unblockUser(b.id)} className="gap-1.5">
+                        <ShieldOff className="w-3.5 h-3.5" /> Unblock
+                      </Button>
                     </div>
                   );
                 })}
