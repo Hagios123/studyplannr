@@ -3,7 +3,7 @@ import { useExtrasStore, Note } from "@/stores/useExtrasStore";
 import { useStudyStore } from "@/stores/useStudyStore";
 import {
   FileText, Plus, Pin, PinOff, Trash2, Search, Sparkles, Loader2,
-  ChevronLeft, Save, Tag,
+  ChevronLeft, Save, Tag, Download, Brain,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -28,6 +28,7 @@ export default function Notes() {
   const [newTags, setNewTags] = useState("");
   const [createOpen, setCreateOpen] = useState(false);
   const [summarizing, setSummarizing] = useState(false);
+  const [summary, setSummary] = useState<string | null>(null);
   const [viewMode, setViewMode] = useState<"list" | "edit">("list");
 
   const allSubjects = [...new Set([...subjects, ...subjectConfigs.map((s) => s.name)])];
@@ -72,30 +73,81 @@ export default function Notes() {
   };
 
   const handleSummarize = async () => {
-    if (!editingNote) return;
+    if (!editingNote || editingNote.content.length < 30) {
+      toast({ title: "Need more content", description: "Write at least 30 characters to summarize.", variant: "destructive" });
+      return;
+    }
     setSummarizing(true);
+    setSummary(null);
     try {
-      const { data, error } = await supabase.functions.invoke("chat", {
-        body: {
-          messages: [
-            { role: "user", content: `Please summarize the following study notes into concise bullet points:\n\n${editingNote.content}` },
-          ],
-        },
+      const { data, error } = await supabase.functions.invoke("summarize", {
+        body: { content: editingNote.content, type: "notes" },
       });
-      // Since chat is streaming, we'll use generate-quiz edge function for non-streaming
-      // Actually let's use a simpler approach
-      toast({ title: "AI Summary", description: "Use the AI Tutor tab to get detailed summaries of your notes!" });
-    } catch {
-      toast({ title: "Error", variant: "destructive" });
+      if (error) throw error;
+      if (data?.error) {
+        toast({ title: "AI Error", description: data.error, variant: "destructive" });
+      } else {
+        setSummary(data.summary);
+        toast({ title: "Summary generated!" });
+      }
+    } catch (e: any) {
+      toast({ title: "Error", description: e.message || "Failed to summarize", variant: "destructive" });
     }
     setSummarizing(false);
+  };
+
+  const handleExportPDF = () => {
+    if (!editingNote) return;
+    // Generate a printable HTML and trigger print dialog (acts as PDF export)
+    const printWindow = window.open("", "_blank");
+    if (!printWindow) {
+      toast({ title: "Popup blocked", description: "Please allow popups to export PDF.", variant: "destructive" });
+      return;
+    }
+    printWindow.document.write(`
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <title>${editingNote.title}</title>
+        <style>
+          body { font-family: 'Segoe UI', system-ui, sans-serif; max-width: 800px; margin: 40px auto; padding: 0 20px; color: #1a1a1a; line-height: 1.6; }
+          h1 { font-size: 24px; border-bottom: 2px solid #0891b2; padding-bottom: 8px; }
+          h2 { font-size: 20px; color: #0891b2; margin-top: 24px; }
+          h3 { font-size: 16px; color: #334155; }
+          .meta { color: #64748b; font-size: 12px; margin-bottom: 24px; }
+          .tags { display: flex; gap: 6px; margin-top: 8px; }
+          .tag { background: #f1f5f9; color: #475569; padding: 2px 8px; border-radius: 12px; font-size: 11px; }
+          pre { background: #f8fafc; padding: 12px; border-radius: 6px; overflow-x: auto; font-size: 13px; }
+          code { background: #f1f5f9; padding: 1px 4px; border-radius: 3px; font-size: 0.9em; }
+          blockquote { border-left: 3px solid #0891b2; padding-left: 12px; color: #475569; }
+          ul, ol { padding-left: 24px; }
+          li { margin-bottom: 4px; }
+          .summary { background: #f0fdfa; border: 1px solid #99f6e4; border-radius: 8px; padding: 16px; margin-top: 24px; }
+          .summary h2 { color: #0d9488; margin-top: 0; }
+          @media print { body { margin: 20px; } }
+        </style>
+      </head>
+      <body>
+        <h1>${editingNote.title}</h1>
+        <div class="meta">
+          ${editingNote.subject} · Updated ${new Date(editingNote.updatedAt).toLocaleDateString()}
+          ${editingNote.tags.length > 0 ? `<div class="tags">${editingNote.tags.map(t => `<span class="tag">#${t}</span>`).join("")}</div>` : ""}
+        </div>
+        <div>${editingNote.content.replace(/\n/g, "<br>")}</div>
+        ${summary ? `<div class="summary"><h2>🤖 AI Summary</h2><div>${summary.replace(/\n/g, "<br>")}</div></div>` : ""}
+      </body>
+      </html>
+    `);
+    printWindow.document.close();
+    setTimeout(() => { printWindow.print(); }, 500);
+    toast({ title: "PDF export ready", description: "Use the print dialog to save as PDF." });
   };
 
   if (viewMode === "edit" && editingNote) {
     return (
       <div className="space-y-4">
         <div className="flex items-center gap-3">
-          <Button variant="ghost" size="icon" onClick={() => setViewMode("list")}>
+          <Button variant="ghost" size="icon" onClick={() => { setViewMode("list"); setSummary(null); }}>
             <ChevronLeft className="w-5 h-5" />
           </Button>
           <div className="flex-1 min-w-0">
@@ -109,21 +161,42 @@ export default function Notes() {
               {editingNote.subject} · Updated {new Date(editingNote.updatedAt).toLocaleDateString()}
             </p>
           </div>
-          <Button
-            variant="outline"
-            size="sm"
-            className="gap-1.5"
-            onClick={() => togglePinNote(editingNote.id)}
-          >
-            {editingNote.pinned ? <PinOff className="w-3.5 h-3.5" /> : <Pin className="w-3.5 h-3.5" />}
-            {editingNote.pinned ? "Unpin" : "Pin"}
-          </Button>
+          <div className="flex gap-1.5">
+            <Button
+              variant="outline"
+              size="sm"
+              className="gap-1.5"
+              onClick={handleSummarize}
+              disabled={summarizing}
+            >
+              {summarizing ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Brain className="w-3.5 h-3.5" />}
+              Summarize
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              className="gap-1.5"
+              onClick={handleExportPDF}
+            >
+              <Download className="w-3.5 h-3.5" />
+              PDF
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              className="gap-1.5"
+              onClick={() => togglePinNote(editingNote.id)}
+            >
+              {editingNote.pinned ? <PinOff className="w-3.5 h-3.5" /> : <Pin className="w-3.5 h-3.5" />}
+              {editingNote.pinned ? "Unpin" : "Pin"}
+            </Button>
+          </div>
         </div>
 
         <Textarea
           value={editingNote.content}
           onChange={(e) => updateNote(editingNote.id, { content: e.target.value })}
-          className="min-h-[50vh] font-mono text-sm resize-none"
+          className="min-h-[40vh] font-mono text-sm resize-none"
           placeholder="Write your notes here... (Markdown supported)"
         />
 
@@ -136,6 +209,19 @@ export default function Notes() {
             className="flex-1"
           />
         </div>
+
+        {/* AI Summary */}
+        {summary && (
+          <div className="p-4 rounded-xl border border-primary/20 bg-primary/5">
+            <div className="flex items-center gap-2 mb-3">
+              <Brain className="w-4 h-4 text-primary" />
+              <p className="text-xs font-semibold text-primary">AI Summary</p>
+            </div>
+            <div className="prose prose-sm dark:prose-invert max-w-none">
+              <ReactMarkdown>{summary}</ReactMarkdown>
+            </div>
+          </div>
+        )}
 
         {editingNote.content.length > 50 && (
           <div className="p-4 rounded-xl border border-border bg-card">
@@ -157,7 +243,7 @@ export default function Notes() {
             <FileText className="w-5 h-5 md:w-6 md:h-6 text-primary" /> Notes
           </h1>
           <p className="text-muted-foreground text-xs md:text-sm mt-1">
-            {notes.length} notes · Markdown supported
+            {notes.length} notes · Markdown supported · AI summaries
           </p>
         </div>
         <Dialog open={createOpen} onOpenChange={setCreateOpen}>
@@ -226,7 +312,7 @@ export default function Notes() {
           {filtered.map((note) => (
             <button
               key={note.id}
-              onClick={() => { setEditing(note.id); setViewMode("edit"); }}
+              onClick={() => { setEditing(note.id); setViewMode("edit"); setSummary(null); }}
               className="text-left p-4 rounded-xl border border-border bg-card hover:border-primary/30 transition-all group"
             >
               <div className="flex items-start justify-between mb-2">
