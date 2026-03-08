@@ -60,15 +60,25 @@ export default function Flashcards() {
   }, [todayTasks, currentTime]);
 
   const filtered = useMemo(() => {
+    let cards = userCards;
     if (filter === "scheduled" && activeTask) {
-      return userCards.filter(
+      cards = userCards.filter(
         (f) => f.subject === activeTask.subject ||
                f.topic?.toLowerCase().includes(activeTask.topic.toLowerCase().split(" ")[0])
       );
+    } else if (filter === "unmastered") {
+      cards = userCards.filter((f) => !f.mastered);
     }
-    if (filter === "unmastered") return userCards.filter((f) => !f.mastered);
-    return userCards;
-  }, [filter, activeTask, userCards]);
+    if (shuffled) {
+      const shuffledCards = [...cards];
+      for (let i = shuffledCards.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [shuffledCards[i], shuffledCards[j]] = [shuffledCards[j], shuffledCards[i]];
+      }
+      return shuffledCards;
+    }
+    return cards;
+  }, [filter, activeTask, userCards, shuffled]);
 
   const card = filtered[currentIndex];
 
