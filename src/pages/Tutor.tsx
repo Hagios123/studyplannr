@@ -252,7 +252,7 @@ export default function Tutor() {
               {msg.role === "assistant" && (
                 <div className="flex items-center gap-1.5 mb-2">
                   <Sparkles className="w-3.5 h-3.5 text-accent" />
-                  <span className="text-xs text-accent font-medium">Nova</span>
+                  <span className="text-xs text-accent font-medium">Study AI</span>
                 </div>
               )}
               <div className="prose prose-sm prose-invert max-w-none">
