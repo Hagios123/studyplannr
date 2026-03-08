@@ -226,6 +226,9 @@ export function AppSidebar() {
                   <TabsTrigger value="appearance" className="flex-1 gap-1.5">
                     <Palette className="w-3.5 h-3.5" /> Theme
                   </TabsTrigger>
+                  <TabsTrigger value="sounds" className="flex-1 gap-1.5">
+                    <Music className="w-3.5 h-3.5" /> Sounds
+                  </TabsTrigger>
                   <TabsTrigger value="accessibility" className="flex-1 gap-1.5">
                     <Accessibility className="w-3.5 h-3.5" /> Access
                   </TabsTrigger>
