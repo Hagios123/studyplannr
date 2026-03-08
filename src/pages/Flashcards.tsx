@@ -239,6 +239,14 @@ export default function Flashcards() {
           </Dialog>
 
           <Button
+            variant={shuffled ? "default" : "outline"}
+            size="sm"
+            onClick={() => { setShuffled(!shuffled); setCurrentIndex(0); setFlipped(false); }}
+            className="gap-1.5"
+          >
+            <Shuffle className="w-3 h-3" /> Shuffle
+          </Button>
+          <Button
             variant={filter === "scheduled" ? "default" : "outline"}
             size="sm"
             onClick={() => { setFilter("scheduled"); setCurrentIndex(0); setFlipped(false); }}
