@@ -30,6 +30,7 @@ const toolItems = [
   { to: "/groups", icon: Users, label: "Groups" },
   { to: "/friends", icon: UserPlus, label: "Friends" },
   { to: "/chat", icon: MessageCircle, label: "Chat" },
+  { to: "/study-rooms", icon: Radio, label: "Rooms" },
   { to: "/profile", icon: User, label: "Profile" },
   { to: "/analytics", icon: BarChart3, label: "Stats" },
 ];
