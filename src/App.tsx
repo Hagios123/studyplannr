@@ -21,6 +21,9 @@ import Resources from "./pages/Resources";
 import Groups from "./pages/Groups";
 import Auth from "./pages/Auth";
 import Friends from "./pages/Friends";
+import Profile from "./pages/Profile";
+import Chat from "./pages/Chat";
+import GroupChat from "./pages/GroupChat";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
