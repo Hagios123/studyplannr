@@ -192,11 +192,25 @@ function QuickActionCard({
 
 const Index = () => {
   const { tasks, sessions, updateTaskStatus, exportSchedule } = useStudyStore();
+  const { totalXP, getLevel, getLevelProgress, getStreak, addXP, recordStreak, incrementStat, checkAchievements } = useGamificationStore();
   const { profile, signOut } = useAuth();
   const { toast } = useToast();
   const [noteDialogTask, setNoteDialogTask] = useState<string | null>(null);
   const [completionNote, setCompletionNote] = useState("");
   const [confettiTrigger, setConfettiTrigger] = useState(0);
+
+  const level = getLevel();
+  const levelProgress = getLevelProgress();
+  const streak = getStreak();
+
+  // Check achievements on mount and when XP changes
+  useEffect(() => {
+    const newAchievements = checkAchievements();
+    if (newAchievements.length > 0) {
+      setConfettiTrigger((c) => c + 1);
+      toast({ title: "🏆 Achievement Unlocked!", description: `You unlocked ${newAchievements.length} new achievement(s)!` });
+    }
+  }, [totalXP]);
 
   const hour = new Date().getHours();
   const greeting = hour < 12 ? "Good morning" : hour < 17 ? "Good afternoon" : hour < 21 ? "Good evening" : "Good night";
