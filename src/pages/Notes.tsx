@@ -140,7 +140,7 @@ export default function Notes() {
         {editingNote.content.length > 50 && (
           <div className="p-4 rounded-xl border border-border bg-card">
             <p className="text-xs font-semibold text-muted-foreground mb-3">Preview</p>
-            <div className="prose prose-sm prose-invert max-w-none">
+            <div className="prose prose-sm dark:prose-invert max-w-none">
               <ReactMarkdown>{editingNote.content}</ReactMarkdown>
             </div>
           </div>

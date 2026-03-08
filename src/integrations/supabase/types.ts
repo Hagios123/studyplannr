@@ -14,6 +14,147 @@ export type Database = {
   }
   public: {
     Tables: {
+      friendships: {
+        Row: {
+          created_at: string
+          friend_id: string
+          id: string
+          status: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          friend_id: string
+          id?: string
+          status?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          friend_id?: string
+          id?: string
+          status?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      group_goals: {
+        Row: {
+          assignee_id: string | null
+          completed: boolean
+          created_at: string
+          due_date: string | null
+          group_id: string
+          id: string
+          title: string
+        }
+        Insert: {
+          assignee_id?: string | null
+          completed?: boolean
+          created_at?: string
+          due_date?: string | null
+          group_id: string
+          id?: string
+          title: string
+        }
+        Update: {
+          assignee_id?: string | null
+          completed?: boolean
+          created_at?: string
+          due_date?: string | null
+          group_id?: string
+          id?: string
+          title?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "group_goals_group_id_fkey"
+            columns: ["group_id"]
+            isOneToOne: false
+            referencedRelation: "study_groups"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      group_members: {
+        Row: {
+          group_id: string
+          id: string
+          joined_at: string
+          role: string
+          user_id: string
+        }
+        Insert: {
+          group_id: string
+          id?: string
+          joined_at?: string
+          role?: string
+          user_id: string
+        }
+        Update: {
+          group_id?: string
+          id?: string
+          joined_at?: string
+          role?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "group_members_group_id_fkey"
+            columns: ["group_id"]
+            isOneToOne: false
+            referencedRelation: "study_groups"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      group_notes: {
+        Row: {
+          author_id: string
+          content: string | null
+          created_at: string
+          file_name: string | null
+          file_url: string | null
+          group_id: string
+          id: string
+          tags: string[] | null
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          author_id: string
+          content?: string | null
+          created_at?: string
+          file_name?: string | null
+          file_url?: string | null
+          group_id: string
+          id?: string
+          tags?: string[] | null
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          author_id?: string
+          content?: string | null
+          created_at?: string
+          file_name?: string | null
+          file_url?: string | null
+          group_id?: string
+          id?: string
+          tags?: string[] | null
+          title?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "group_notes_group_id_fkey"
+            columns: ["group_id"]
+            isOneToOne: false
+            referencedRelation: "study_groups"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profiles: {
         Row: {
           created_at: string
@@ -32,6 +173,33 @@ export type Database = {
           display_name?: string | null
           id?: string
           username?: string
+        }
+        Relationships: []
+      }
+      study_groups: {
+        Row: {
+          color: string
+          created_at: string
+          created_by: string
+          description: string | null
+          id: string
+          name: string
+        }
+        Insert: {
+          color?: string
+          created_at?: string
+          created_by: string
+          description?: string | null
+          id?: string
+          name: string
+        }
+        Update: {
+          color?: string
+          created_at?: string
+          created_by?: string
+          description?: string | null
+          id?: string
+          name?: string
         }
         Relationships: []
       }

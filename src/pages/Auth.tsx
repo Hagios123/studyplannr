@@ -3,7 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
-import { LogIn, UserPlus, Sparkles } from "lucide-react";
+import { LogIn, UserPlus, Sparkles, Mail } from "lucide-react";
 
 export default function Auth() {
   const [mode, setMode] = useState<"login" | "signup">("login");
@@ -11,6 +11,7 @@ export default function Auth() {
   const [password, setPassword] = useState("");
   const [username, setUsername] = useState("");
   const [loading, setLoading] = useState(false);
+  const [emailSent, setEmailSent] = useState(false);
   const { toast } = useToast();
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -27,7 +28,7 @@ export default function Auth() {
           },
         });
         if (error) throw error;
-        toast({ title: "Account created!", description: "Welcome to Study AI." });
+        setEmailSent(true);
       } else {
         const { error } = await supabase.auth.signInWithPassword({ email, password });
         if (error) throw error;
@@ -38,6 +39,40 @@ export default function Auth() {
     }
     setLoading(false);
   };
+
+  if (emailSent) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center p-4">
+        <div className="w-full max-w-md text-center space-y-6">
+          <div className="w-16 h-16 rounded-2xl bg-primary/10 flex items-center justify-center mx-auto">
+            <Mail className="w-8 h-8 text-primary" />
+          </div>
+          <div>
+            <h1 className="text-2xl font-display font-bold">Check your email</h1>
+            <p className="text-muted-foreground text-sm mt-2">
+              We sent a verification link to <span className="font-medium text-foreground">{email}</span>.
+              Click the link in the email to activate your account.
+            </p>
+          </div>
+          <div className="bg-card border border-border rounded-xl p-4 text-sm text-muted-foreground">
+            <p>Didn't receive the email? Check your spam folder or</p>
+            <button
+              onClick={() => { setEmailSent(false); setMode("signup"); }}
+              className="text-primary font-medium hover:underline mt-1"
+            >
+              try signing up again
+            </button>
+          </div>
+          <button
+            onClick={() => { setEmailSent(false); setMode("login"); }}
+            className="text-sm text-muted-foreground hover:text-foreground transition-colors"
+          >
+            Already verified? Sign in →
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-background flex items-center justify-center p-4">

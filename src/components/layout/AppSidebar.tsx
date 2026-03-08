@@ -24,6 +24,7 @@ import {
   Heart,
   Library,
   Users,
+  UserPlus,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useTheme } from "@/hooks/useTheme";
@@ -46,6 +47,7 @@ const toolItems = [
   { to: "/habits", icon: Heart, label: "Habits" },
   { to: "/resources", icon: Library, label: "Library" },
   { to: "/groups", icon: Users, label: "Groups" },
+  { to: "/friends", icon: UserPlus, label: "Friends" },
   { to: "/analytics", icon: BarChart3, label: "Stats" },
 ];
 

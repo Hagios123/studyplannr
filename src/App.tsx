@@ -20,6 +20,7 @@ import Habits from "./pages/Habits";
 import Resources from "./pages/Resources";
 import Groups from "./pages/Groups";
 import Auth from "./pages/Auth";
+import Friends from "./pages/Friends";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -40,6 +41,7 @@ function AnimatedRoutes() {
         <Route path="/habits" element={<PageTransition><Habits /></PageTransition>} />
         <Route path="/resources" element={<PageTransition><Resources /></PageTransition>} />
         <Route path="/groups" element={<PageTransition><Groups /></PageTransition>} />
+        <Route path="/friends" element={<PageTransition><Friends /></PageTransition>} />
         <Route path="*" element={<PageTransition><NotFound /></PageTransition>} />
       </Routes>
     </AnimatePresence>
