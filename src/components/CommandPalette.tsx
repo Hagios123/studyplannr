@@ -18,6 +18,10 @@ import {
   BarChart3,
   Search,
   BookOpen,
+  FileText,
+  Heart,
+  Library,
+  Users,
 } from "lucide-react";
 
 const pages = [
