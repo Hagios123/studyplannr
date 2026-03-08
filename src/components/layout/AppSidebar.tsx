@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import { NavLink, useLocation } from "react-router-dom";
 import {
   LayoutDashboard, CalendarDays, Layers, HelpCircle, MessageSquare, BarChart3,
@@ -6,6 +6,7 @@ import {
   BookOpen, Palette, Accessibility, Type, Eye, Zap, FileText, Heart,
   Library, Users, UserPlus, User, MessageCircle, MousePointer, Scan,
   AlignJustify, Focus, Glasses, Cpu, Paintbrush, Trophy, Radio,
+  Music, Volume2, VolumeX,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useTheme } from "@/hooks/useTheme";
