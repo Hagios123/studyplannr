@@ -4,7 +4,7 @@ type Mode = "light" | "dark" | "system";
 type ColorTheme = "blue" | "green" | "red" | "grey" | "purple";
 type FontSize = "normal" | "large" | "xl";
 type LineSpacing = "compact" | "normal" | "relaxed";
-type UiStyle = "normal" | "cyberpunk" | "retro" | "glass" | "minimal";
+type UiStyle = "normal" | "cyberpunk" | "retro" | "glass" | "minimal" | "steampunk";
 
 interface ThemeContext {
   mode: Mode;
@@ -96,6 +96,7 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
     root.classList.toggle("ui-retro", uiStyle === "retro");
     root.classList.toggle("ui-glass", uiStyle === "glass");
     root.classList.toggle("ui-minimal", uiStyle === "minimal");
+    root.classList.toggle("ui-steampunk", uiStyle === "steampunk");
   }, [resolvedMode, colorTheme, fontSize, reducedMotion, highContrast, dyslexicFont, lineSpacing, focusHighlight, colorBlindMode, screenReaderHints, largeCursor, uiStyle]);
 
   const persist = (key: string, val: string) => localStorage.setItem(key, val);

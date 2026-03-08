@@ -1061,3 +1061,239 @@
   font-weight: 500;
   border: 1px solid hsl(var(--border) / 0.3);
 }
+
+/* ========================================
+   STEAMPUNK UI STYLE
+   Brass, rivets, pipes, worn leather
+   ======================================== */
+
+.ui-steampunk {
+  --radius: 0.25rem;
+  --steam-brass: 38 70% 50%;
+  --steam-copper: 20 65% 45%;
+  --steam-leather: 25 30% 18%;
+  --steam-parchment: 40 40% 85%;
+  --steam-rivet: 38 50% 60%;
+}
+
+/* Parchment texture background */
+.ui-steampunk body {
+  position: relative;
+}
+
+.ui-steampunk body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+  background:
+    radial-gradient(ellipse at 20% 50%, hsl(var(--steam-brass) / 0.04) 0%, transparent 50%),
+    radial-gradient(ellipse at 80% 20%, hsl(var(--steam-copper) / 0.05) 0%, transparent 50%),
+    repeating-linear-gradient(
+      90deg,
+      transparent,
+      transparent 60px,
+      hsl(var(--steam-brass) / 0.02) 60px,
+      hsl(var(--steam-brass) / 0.02) 61px
+    );
+}
+
+/* Pipe-like decorative lines */
+.ui-steampunk body::after {
+  content: "";
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  z-index: 9998;
+  pointer-events: none;
+  background: linear-gradient(
+    90deg,
+    hsl(var(--steam-brass) / 0.3),
+    hsl(var(--steam-brass) / 0.7),
+    hsl(var(--steam-copper) / 0.5),
+    hsl(var(--steam-brass) / 0.7),
+    hsl(var(--steam-brass) / 0.3)
+  );
+  box-shadow: 0 1px 4px hsl(var(--steam-brass) / 0.3);
+}
+
+.ui-steampunk * {
+  font-family: 'Courier New', 'Georgia', serif !important;
+}
+
+.ui-steampunk h1, .ui-steampunk h2, .ui-steampunk h3 {
+  font-family: 'Georgia', 'Palatino', 'Times New Roman', serif !important;
+  letter-spacing: 0.05em;
+  color: hsl(var(--steam-brass));
+  text-shadow: 1px 1px 2px hsl(var(--steam-leather) / 0.5);
+}
+
+/* Riveted card borders */
+.ui-steampunk [class*="bg-card"], .ui-steampunk .glass {
+  background: linear-gradient(145deg, hsl(var(--steam-leather) / 0.95), hsl(var(--steam-leather))) !important;
+  border: 2px solid hsl(var(--steam-brass) / 0.4) !important;
+  border-radius: 2px !important;
+  box-shadow:
+    inset 0 1px 0 hsl(var(--steam-brass) / 0.1),
+    inset 0 -1px 0 hsl(0 0% 0% / 0.2),
+    0 2px 8px hsl(0 0% 0% / 0.3) !important;
+  position: relative;
+}
+
+/* Rivet corners on cards */
+.ui-steampunk [class*="bg-card"]::before,
+.ui-steampunk [class*="bg-card"]::after {
+  content: "⚙";
+  position: absolute;
+  font-size: 10px;
+  color: hsl(var(--steam-rivet));
+  opacity: 0.5;
+  z-index: 1;
+  text-shadow: 0 1px 1px hsl(0 0% 0% / 0.3);
+}
+.ui-steampunk [class*="bg-card"]::before {
+  top: 4px;
+  left: 6px;
+}
+.ui-steampunk [class*="bg-card"]::after {
+  top: 4px;
+  right: 6px;
+}
+
+.ui-steampunk .rounded-lg, .ui-steampunk .rounded-xl, .ui-steampunk .rounded-2xl {
+  border-radius: 2px !important;
+}
+
+/* Sidebar: dark leather with brass trim */
+.ui-steampunk aside {
+  background: linear-gradient(180deg, hsl(25 20% 12%), hsl(25 15% 8%)) !important;
+  border-right: 3px solid hsl(var(--steam-brass) / 0.4) !important;
+  box-shadow: inset -4px 0 12px hsl(0 0% 0% / 0.3);
+}
+
+/* Brass pipe along sidebar edge */
+.ui-steampunk aside::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  right: -3px;
+  width: 3px;
+  height: 100%;
+  background: linear-gradient(
+    180deg,
+    hsl(var(--steam-brass) / 0.6),
+    hsl(var(--steam-copper) / 0.8),
+    hsl(var(--steam-brass) / 0.6),
+    hsl(var(--steam-copper) / 0.8),
+    hsl(var(--steam-brass) / 0.6)
+  );
+  box-shadow: 0 0 6px hsl(var(--steam-brass) / 0.3);
+}
+
+.ui-steampunk [class*="border"] {
+  border-color: hsl(var(--steam-brass) / 0.25);
+}
+
+/* Buttons: embossed brass */
+.ui-steampunk button:not([data-radix-collection-item]) {
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  font-size: 0.75em;
+  text-shadow: 0 1px 0 hsl(0 0% 0% / 0.3);
+}
+
+/* Inputs: engraved metal feel */
+.ui-steampunk input, .ui-steampunk textarea, .ui-steampunk select {
+  background: hsl(25 15% 10%) !important;
+  border: 1px solid hsl(var(--steam-brass) / 0.3) !important;
+  border-radius: 1px !important;
+  color: hsl(var(--steam-parchment));
+  caret-color: hsl(var(--steam-brass));
+  box-shadow: inset 0 2px 4px hsl(0 0% 0% / 0.3) !important;
+}
+
+.ui-steampunk input:focus, .ui-steampunk textarea:focus {
+  border-color: hsl(var(--steam-brass) / 0.6) !important;
+  box-shadow: inset 0 2px 4px hsl(0 0% 0% / 0.3), 0 0 8px hsl(var(--steam-brass) / 0.15) !important;
+}
+
+/* Dialog: ornate brass frame */
+.ui-steampunk [role="dialog"] {
+  background: linear-gradient(145deg, hsl(25 20% 14%), hsl(25 15% 10%)) !important;
+  border: 2px solid hsl(var(--steam-brass) / 0.5) !important;
+  border-radius: 2px !important;
+  box-shadow: 0 0 30px hsl(var(--steam-brass) / 0.1), 0 8px 32px hsl(0 0% 0% / 0.5) !important;
+}
+
+/* Nav: warm leather hover */
+.ui-steampunk nav a:hover, .ui-steampunk aside a:hover {
+  background: hsl(var(--steam-brass) / 0.08) !important;
+  border-left: 2px solid hsl(var(--steam-brass) / 0.4);
+}
+
+.ui-steampunk nav a[class*="text-primary"],
+.ui-steampunk aside a[class*="text-primary"] {
+  background: hsl(var(--steam-brass) / 0.1) !important;
+  border-left: 2px solid hsl(var(--steam-brass) / 0.6);
+}
+
+/* Progress bars: brass gauge */
+.ui-steampunk [role="progressbar"] {
+  background: hsl(25 15% 10%) !important;
+  border: 1px solid hsl(var(--steam-brass) / 0.2);
+  box-shadow: inset 0 1px 3px hsl(0 0% 0% / 0.4);
+}
+.ui-steampunk [role="progressbar"] > div {
+  background: linear-gradient(90deg, hsl(var(--steam-copper)), hsl(var(--steam-brass)), hsl(var(--steam-copper))) !important;
+  box-shadow: 0 0 6px hsl(var(--steam-brass) / 0.4);
+}
+
+/* Numbers: engraved brass feel */
+.ui-steampunk .tabular-nums,
+.ui-steampunk [class*="font-display"][class*="font-bold"] {
+  font-family: 'Georgia', serif !important;
+  color: hsl(var(--steam-brass));
+  text-shadow: 1px 1px 1px hsl(0 0% 0% / 0.4);
+}
+
+/* Scrollbar: brass pipe */
+.ui-steampunk ::-webkit-scrollbar { width: 8px; }
+.ui-steampunk ::-webkit-scrollbar-track {
+  background: hsl(25 15% 8%);
+  border-left: 1px solid hsl(var(--steam-brass) / 0.15);
+}
+.ui-steampunk ::-webkit-scrollbar-thumb {
+  background: linear-gradient(180deg, hsl(var(--steam-brass) / 0.4), hsl(var(--steam-copper) / 0.5), hsl(var(--steam-brass) / 0.4));
+  border-radius: 0;
+  border: 1px solid hsl(var(--steam-brass) / 0.2);
+}
+
+/* Badges: riveted plates */
+.ui-steampunk [class*="badge"], .ui-steampunk [class*="Badge"] {
+  border-radius: 1px !important;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  font-family: 'Georgia', serif !important;
+  font-size: 0.7em;
+  border: 1px solid hsl(var(--steam-brass) / 0.3);
+  background: linear-gradient(135deg, hsl(var(--steam-leather)), hsl(25 20% 15%));
+  text-shadow: 0 1px 0 hsl(0 0% 0% / 0.3);
+}
+
+/* Steam animation on hover for headings */
+@keyframes steam-rise {
+  0% { opacity: 0.6; transform: translateY(0) scale(1); }
+  100% { opacity: 0; transform: translateY(-12px) scale(1.3); }
+}
+
+.ui-steampunk h1::after {
+  content: "⚙";
+  display: inline-block;
+  margin-left: 8px;
+  font-size: 0.6em;
+  opacity: 0.3;
+  animation: steam-rise 3s ease-in-out infinite;
+}
