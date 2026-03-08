@@ -1,5 +1,6 @@
 import { useState, useMemo, useEffect, useCallback } from "react";
 import { useStudyStore } from "@/stores/useStudyStore";
+import { useGamificationStore } from "@/stores/useGamificationStore";
 import { Layers, RotateCw, Check, ChevronLeft, ChevronRight, Clock, Sparkles, Loader2, Shuffle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -19,6 +20,7 @@ const DIFFICULTY_LABELS: Record<FlashcardDifficulty, { label: string; color: str
 
 export default function Flashcards() {
   const { flashcards, toggleFlashcardMastered, addFlashcard, tasks, subjects, subjectConfigs } = useStudyStore();
+  const { addXP, incrementStat, recordStreak } = useGamificationStore();
   const { toast } = useToast();
   const [currentIndex, setCurrentIndex] = useState(0);
   const [flipped, setFlipped] = useState(false);
@@ -309,7 +311,14 @@ export default function Flashcards() {
             <Button variant="outline" size="icon" onClick={next}><ChevronRight className="w-5 h-5" /></Button>
           </div>
           <div className="flex justify-center">
-            <Button variant={card.mastered ? "outline" : "default"} onClick={() => toggleFlashcardMastered(card.id)} className="gap-2">
+            <Button variant={card.mastered ? "outline" : "default"} onClick={() => {
+              if (!card.mastered) {
+                addXP("flashcard_master", `Mastered: ${card.front.slice(0, 30)}`);
+                incrementStat("flashcardsMastered");
+                recordStreak(new Date().toISOString().split("T")[0]);
+              }
+              toggleFlashcardMastered(card.id);
+            }} className="gap-2">
               <Check className="w-4 h-4" />
               {card.mastered ? "Unmark Mastered" : "Mark as Mastered"}
             </Button>

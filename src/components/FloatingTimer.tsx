@@ -3,6 +3,7 @@ import { Timer, Play, Pause, RotateCcw, Coffee, X, Settings2 } from "lucide-reac
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useStudyStore } from "@/stores/useStudyStore";
+import { useGamificationStore } from "@/stores/useGamificationStore";
 import { motion, AnimatePresence } from "framer-motion";
 
 type Phase = "focus" | "break";
@@ -23,6 +24,7 @@ export function FloatingTimer() {
   const [running, setRunning] = useState(false);
   const [pomodoroCount, setPomodoroCount] = useState(0);
   const { addSession, subjects } = useStudyStore();
+  const { addXP, recordStreak, incrementStat } = useGamificationStore();
   const intervalRef = useRef<ReturnType<typeof setInterval>>();
 
   const focusDuration = focusMinutes * 60;
@@ -59,6 +61,9 @@ export function FloatingTimer() {
               duration: focusMinutes,
               type: "pomodoro",
             });
+            addXP("session_complete", "Completed a Pomodoro session");
+            incrementStat("sessionsCompleted");
+            recordStreak(new Date().toISOString().split("T")[0]);
             setPhase("break");
             return breakDuration;
           } else {

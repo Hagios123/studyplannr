@@ -5,7 +5,7 @@ import {
   ChevronLeft, ChevronRight, Sparkles, Settings, Sun, Moon, Monitor,
   BookOpen, Palette, Accessibility, Type, Eye, Zap, FileText, Heart,
   Library, Users, UserPlus, User, MessageCircle, MousePointer, Scan,
-  AlignJustify, Focus, Glasses, Cpu, Paintbrush,
+  AlignJustify, Focus, Glasses, Cpu, Paintbrush, Trophy, Radio,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useTheme } from "@/hooks/useTheme";
@@ -30,6 +30,7 @@ const toolItems = [
   { to: "/groups", icon: Users, label: "Groups" },
   { to: "/friends", icon: UserPlus, label: "Friends" },
   { to: "/chat", icon: MessageCircle, label: "Chat" },
+  { to: "/study-rooms", icon: Radio, label: "Rooms" },
   { to: "/profile", icon: User, label: "Profile" },
   { to: "/analytics", icon: BarChart3, label: "Stats" },
 ];

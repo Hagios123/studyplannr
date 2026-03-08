@@ -1,5 +1,6 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { useStudyStore } from "@/stores/useStudyStore";
+import { useGamificationStore } from "@/stores/useGamificationStore";
 import { useAuth } from "@/hooks/useAuth";
 import {
   CalendarDays,
@@ -15,6 +16,9 @@ import {
   Download,
   Target,
   MessageSquareText,
+  Trophy,
+  Star,
+  Zap,
 } from "lucide-react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -22,6 +26,7 @@ import { Confetti } from "@/components/Confetti";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
+import { Progress } from "@/components/ui/progress";
 
 const TIPS = [
   "Use the Pomodoro technique: 25 min focus, 5 min break. Your brain retains more with spaced intervals.",
@@ -187,11 +192,25 @@ function QuickActionCard({
 
 const Index = () => {
   const { tasks, sessions, updateTaskStatus, exportSchedule } = useStudyStore();
+  const { totalXP, getLevel, getLevelProgress, getStreak, addXP, recordStreak, incrementStat, checkAchievements } = useGamificationStore();
   const { profile, signOut } = useAuth();
   const { toast } = useToast();
   const [noteDialogTask, setNoteDialogTask] = useState<string | null>(null);
   const [completionNote, setCompletionNote] = useState("");
   const [confettiTrigger, setConfettiTrigger] = useState(0);
+
+  const level = getLevel();
+  const levelProgress = getLevelProgress();
+  const streak = getStreak();
+
+  // Check achievements on mount and when XP changes
+  useEffect(() => {
+    const newAchievements = checkAchievements();
+    if (newAchievements.length > 0) {
+      setConfettiTrigger((c) => c + 1);
+      toast({ title: "🏆 Achievement Unlocked!", description: `You unlocked ${newAchievements.length} new achievement(s)!` });
+    }
+  }, [totalXP]);
 
   const hour = new Date().getHours();
   const greeting = hour < 12 ? "Good morning" : hour < 17 ? "Good afternoon" : hour < 21 ? "Good evening" : "Good night";
@@ -214,13 +233,18 @@ const Index = () => {
   const confirmComplete = () => {
     if (noteDialogTask) {
       updateTaskStatus(noteDialogTask, "completed", completionNote || undefined);
+      // Award XP
+      addXP("task_complete", "Completed a study task");
+      incrementStat("tasksCompleted");
+      recordStreak(today);
+
       const newCompleted = todaysTasks.filter((t) => t.status === "completed" || t.id === noteDialogTask).length;
       const totalPending = todaysTasks.filter((t) => t.status === "pending").length;
       if (newCompleted === todaysTasks.length || totalPending <= 1) {
         setConfettiTrigger((c) => c + 1);
         toast({ title: "🎉 All tasks complete!", description: "Amazing work today!" });
       } else {
-        toast({ title: "Task completed!", description: completionNote ? "Note saved." : undefined });
+        toast({ title: "Task completed! +15 XP", description: completionNote ? "Note saved." : undefined });
       }
     }
     setNoteDialogTask(null);
@@ -264,6 +288,23 @@ const Index = () => {
           </Button>
         </div>
       </div>
+
+      {/* XP Level Bar */}
+      <Link to="/analytics" className="block">
+        <div className="flex items-center gap-4 p-3 rounded-xl border border-accent/20 bg-accent/5 hover:border-accent/40 transition-all">
+          <div className="flex items-center gap-2">
+            <Trophy className="w-5 h-5 text-accent" />
+            <span className="text-sm font-display font-bold">Lv.{level}</span>
+          </div>
+          <div className="flex-1">
+            <Progress value={levelProgress.percent} className="h-2" />
+          </div>
+          <div className="flex items-center gap-3 text-xs text-muted-foreground">
+            <span className="font-semibold text-accent">{totalXP} XP</span>
+            <span className="flex items-center gap-1"><Flame className="w-3 h-3 text-accent" />{streak}d</span>
+          </div>
+        </div>
+      </Link>
 
       {/* Daily Study Tip */}
       <div className="flex items-start gap-3 p-4 rounded-xl border border-primary/20 bg-primary/5">
