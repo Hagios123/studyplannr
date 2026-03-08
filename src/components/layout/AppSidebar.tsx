@@ -65,6 +65,9 @@ const colorOptions = [
 const uiStyleOptions = [
   { value: "normal" as const, icon: Paintbrush, label: "Normal" },
   { value: "cyberpunk" as const, icon: Cpu, label: "Cyberpunk" },
+  { value: "retro" as const, icon: Monitor, label: "Retro Terminal" },
+  { value: "glass" as const, icon: Eye, label: "Glassmorphism" },
+  { value: "minimal" as const, icon: Type, label: "Minimal" },
 ];
 
 const fontSizeOptions = [
