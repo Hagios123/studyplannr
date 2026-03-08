@@ -60,8 +60,10 @@ export default function Tutor() {
   const [isTyping, setIsTyping] = useState(false);
   const [selectedSubject, setSelectedSubject] = useState<string>("all");
   const [uploadedFiles, setUploadedFiles] = useState<UploadedFile[]>([]);
+  const [isListening, setIsListening] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const recognitionRef = useRef<any>(null);
 
   const today = new Date().toISOString().split("T")[0];
   const currentTasks = tasks.filter((t) => t.date === today && t.status === "pending");
