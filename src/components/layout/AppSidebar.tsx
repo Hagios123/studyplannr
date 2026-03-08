@@ -83,7 +83,7 @@ export function AppSidebar() {
     highContrast, setHighContrast, dyslexicFont, setDyslexicFont,
     lineSpacing, setLineSpacing, focusHighlight, setFocusHighlight,
     colorBlindMode, setColorBlindMode, screenReaderHints, setScreenReaderHints,
-    largeCursor, setLargeCursor,
+    largeCursor, setLargeCursor, uiStyle, setUiStyle,
   } = useTheme();
 
   const replayTutorial = () => {
