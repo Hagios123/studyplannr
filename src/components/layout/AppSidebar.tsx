@@ -53,6 +53,12 @@ const colorOptions = [
   { value: "green" as const, label: "Matrix Green", swatch: "bg-[hsl(152,100%,45%)]" },
   { value: "red" as const, label: "Crimson Neon", swatch: "bg-[hsl(0,90%,55%)]" },
   { value: "grey" as const, label: "Steel Grey", swatch: "bg-[hsl(220,20%,58%)]" },
+  { value: "purple" as const, label: "Neon Purple", swatch: "bg-[hsl(270,100%,60%)]" },
+];
+
+const uiStyleOptions = [
+  { value: "normal" as const, icon: Paintbrush, label: "Normal" },
+  { value: "cyberpunk" as const, icon: Cpu, label: "Cyberpunk" },
 ];
 
 const fontSizeOptions = [
