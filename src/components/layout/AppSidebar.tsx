@@ -362,13 +362,13 @@ export function AppSidebar() {
                 <TabsContent value="sounds" className="space-y-4 pt-2">
                   <div className="space-y-3">
                     <label className="text-sm font-semibold flex items-center gap-2">
-                      <Music className="w-4 h-4 text-muted-foreground" /> Study Sounds
+                      <Music className="w-4 h-4 text-muted-foreground" /> Built-in Sounds
                     </label>
                     <div className="space-y-1.5">
                       {AMBIENT_TRACKS.map((track) => (
                         <button
                           key={track.id}
-                          onClick={() => playTrack(track.id)}
+                          onClick={() => playTrack(track.id, track.url)}
                           className={cn(
                             "w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all",
                             playing === track.id
@@ -392,6 +392,75 @@ export function AppSidebar() {
                         </button>
                       ))}
                     </div>
+                  </div>
+
+                  {/* Custom Sounds */}
+                  <div className="space-y-3">
+                    <label className="text-sm font-semibold flex items-center gap-2">
+                      <Upload className="w-4 h-4 text-muted-foreground" /> Custom Sounds
+                    </label>
+                    {user ? (
+                      <>
+                        <input
+                          ref={fileInputRef}
+                          type="file"
+                          accept="audio/*"
+                          onChange={handleUploadSound}
+                          className="hidden"
+                        />
+                        <button
+                          onClick={() => fileInputRef.current?.click()}
+                          disabled={uploading}
+                          className="w-full flex items-center justify-center gap-2 px-3 py-2.5 rounded-xl border border-dashed border-border text-sm font-medium text-muted-foreground hover:border-primary/30 hover:text-foreground transition-all disabled:opacity-50"
+                        >
+                          {uploading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Upload className="w-4 h-4" />}
+                          {uploading ? "Uploading..." : "Upload Sound (MP3, WAV)"}
+                        </button>
+                        {customSounds.length > 0 && (
+                          <div className="space-y-1.5">
+                            {customSounds.map((sound) => (
+                              <div key={sound.id} className="flex items-center gap-1">
+                                <button
+                                  onClick={() => playTrack(sound.id, sound.url)}
+                                  className={cn(
+                                    "flex-1 flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all",
+                                    playing === sound.id
+                                      ? "bg-primary/10 text-primary border border-primary/20"
+                                      : "bg-secondary/50 text-muted-foreground hover:bg-secondary hover:text-foreground border border-transparent"
+                                  )}
+                                >
+                                  <span className="text-base">🎧</span>
+                                  <span className="flex-1 text-left truncate">{sound.label}</span>
+                                  {playing === sound.id && (
+                                    <div className="flex gap-0.5 items-end">
+                                      {[1, 2, 3].map((i) => (
+                                        <div
+                                          key={i}
+                                          className="w-0.5 bg-primary rounded-full animate-pulse"
+                                          style={{ height: `${8 + i * 3}px`, animationDelay: `${i * 0.15}s` }}
+                                        />
+                                      ))}
+                                    </div>
+                                  )}
+                                </button>
+                                <button
+                                  onClick={() => deleteCustomSound(sound)}
+                                  className="p-2 rounded-lg text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-all shrink-0"
+                                  title="Remove sound"
+                                >
+                                  <Trash2 className="w-3.5 h-3.5" />
+                                </button>
+                              </div>
+                            ))}
+                          </div>
+                        )}
+                        {customSounds.length === 0 && (
+                          <p className="text-xs text-muted-foreground text-center py-2">No custom sounds yet. Upload your own!</p>
+                        )}
+                      </>
+                    ) : (
+                      <p className="text-xs text-muted-foreground text-center py-2">Sign in to upload custom sounds</p>
+                    )}
                   </div>
 
                   <div className="space-y-2">
