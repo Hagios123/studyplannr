@@ -97,6 +97,42 @@ export function AppSidebar() {
     largeCursor, setLargeCursor, uiStyle, setUiStyle,
   } = useTheme();
 
+  // Ambient sound state
+  const [playing, setPlaying] = useState<string | null>(null);
+  const [volume, setVolume] = useState(50);
+  const audioRef = useRef<HTMLAudioElement | null>(null);
+
+  useEffect(() => {
+    return () => {
+      if (audioRef.current) {
+        audioRef.current.pause();
+        audioRef.current = null;
+      }
+    };
+  }, []);
+
+  const playTrack = (trackId: string) => {
+    const track = AMBIENT_TRACKS.find((t) => t.id === trackId);
+    if (!track) return;
+    if (playing === trackId) {
+      audioRef.current?.pause();
+      audioRef.current = null;
+      setPlaying(null);
+      return;
+    }
+    if (audioRef.current) audioRef.current.pause();
+    const audio = new Audio(track.url);
+    audio.loop = true;
+    audio.volume = volume / 100;
+    audio.play().catch(() => {});
+    audioRef.current = audio;
+    setPlaying(trackId);
+  };
+
+  useEffect(() => {
+    if (audioRef.current) audioRef.current.volume = volume / 100;
+  }, [volume]);
+
   const replayTutorial = () => {
     localStorage.removeItem(ONBOARDING_KEY);
     window.location.reload();
