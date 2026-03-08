@@ -76,6 +76,14 @@ const lineSpacingOptions = [
   { value: "relaxed" as const, label: "Relaxed" },
 ];
 
+const AMBIENT_TRACKS = [
+  { id: "lofi", label: "Lo-Fi Beats", emoji: "🎵", url: "https://cdn.pixabay.com/audio/2022/05/27/audio_1808fbf07a.mp3" },
+  { id: "rain", label: "Rain Sounds", emoji: "🌧️", url: "https://cdn.pixabay.com/audio/2022/09/06/audio_80265eed33.mp3" },
+  { id: "cafe", label: "Café Ambience", emoji: "☕", url: "https://cdn.pixabay.com/audio/2024/11/04/audio_af36e1f77b.mp3" },
+  { id: "nature", label: "Forest & Birds", emoji: "🌲", url: "https://cdn.pixabay.com/audio/2022/03/09/audio_c8afbab4b2.mp3" },
+  { id: "whitenoise", label: "White Noise", emoji: "📡", url: "https://cdn.pixabay.com/audio/2024/09/26/audio_7e0deb4a5e.mp3" },
+];
+
 export function AppSidebar() {
   const [collapsed, setCollapsed] = useState(false);
   const [settingsOpen, setSettingsOpen] = useState(false);
