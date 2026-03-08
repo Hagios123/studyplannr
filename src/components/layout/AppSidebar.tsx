@@ -50,6 +50,7 @@ const toolItems = [
   { to: "/resources", icon: Library, label: "Library" },
   { to: "/groups", icon: Users, label: "Groups" },
   { to: "/friends", icon: UserPlus, label: "Friends" },
+  { to: "/profile", icon: User, label: "Profile" },
   { to: "/analytics", icon: BarChart3, label: "Stats" },
 ];
 
