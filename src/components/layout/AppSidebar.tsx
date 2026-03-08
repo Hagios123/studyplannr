@@ -25,6 +25,8 @@ import {
   Library,
   Users,
   UserPlus,
+  User,
+  MessageCircle,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useTheme } from "@/hooks/useTheme";
