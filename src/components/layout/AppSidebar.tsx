@@ -68,6 +68,7 @@ const uiStyleOptions = [
   { value: "retro" as const, icon: Monitor, label: "Retro Terminal" },
   { value: "glass" as const, icon: Eye, label: "Glassmorphism" },
   { value: "minimal" as const, icon: Type, label: "Minimal" },
+  { value: "steampunk" as const, icon: Settings, label: "Steampunk" },
 ];
 
 const fontSizeOptions = [
