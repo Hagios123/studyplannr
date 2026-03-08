@@ -295,6 +295,9 @@ export default function Flashcards() {
               {card.mastered ? "Unmark Mastered" : "Mark as Mastered"}
             </Button>
           </div>
+          <p className="text-center text-[10px] text-muted-foreground mt-2 hidden md:block">
+            ← → navigate · Space flip · M mark mastered
+          </p>
         </>
       )}
     </div>
