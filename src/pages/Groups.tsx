@@ -3,7 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import {
   Users, Plus, Trash2, Check, Target, UserPlus, FileText, Upload, Download,
-  Loader2, ChevronLeft, X,
+  Loader2, ChevronLeft, X, Search, Globe,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -91,6 +91,7 @@ export default function Groups() {
   const [noteContent, setNoteContent] = useState("");
   const [addMemberId, setAddMemberId] = useState("");
   const [uploading, setUploading] = useState(false);
+  const [groupSearch, setGroupSearch] = useState("");
 
   const fetchAll = useCallback(async () => {
     if (!user) return;
@@ -316,14 +317,28 @@ export default function Groups() {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Group list */}
         <div className="space-y-2">
-          {groups.length === 0 ? (
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+            <Input
+              placeholder="Search groups..."
+              value={groupSearch}
+              onChange={(e) => setGroupSearch(e.target.value)}
+              className="pl-9"
+            />
+          </div>
+          {(() => {
+            const filtered = groups.filter((g) =>
+              g.name.toLowerCase().includes(groupSearch.toLowerCase()) ||
+              g.description.toLowerCase().includes(groupSearch.toLowerCase())
+            );
+            return filtered.length === 0 ? (
             <div className="text-center py-16 text-muted-foreground">
               <Users className="w-12 h-12 mx-auto mb-3 opacity-30" />
-              <p className="font-display font-semibold">No groups yet</p>
-              <p className="text-sm mt-1">Create a study group to get started.</p>
+              <p className="font-display font-semibold">{groups.length === 0 ? "No groups yet" : "No matching groups"}</p>
+              <p className="text-sm mt-1">{groups.length === 0 ? "Create a study group to get started." : "Try a different search term."}</p>
             </div>
           ) : (
-            groups.map((group) => {
+            filtered.map((group) => {
               const gMembers = members[group.id] || [];
               const gGoals = goals[group.id] || [];
               const completedGoals = gGoals.filter((g) => g.completed).length;
@@ -352,7 +367,8 @@ export default function Groups() {
                 </button>
               );
             })
-          )}
+          );
+          })()}
         </div>
 
         {/* Group detail */}
