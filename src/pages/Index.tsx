@@ -233,13 +233,18 @@ const Index = () => {
   const confirmComplete = () => {
     if (noteDialogTask) {
       updateTaskStatus(noteDialogTask, "completed", completionNote || undefined);
+      // Award XP
+      addXP("task_complete", "Completed a study task");
+      incrementStat("tasksCompleted");
+      recordStreak(today);
+
       const newCompleted = todaysTasks.filter((t) => t.status === "completed" || t.id === noteDialogTask).length;
       const totalPending = todaysTasks.filter((t) => t.status === "pending").length;
       if (newCompleted === todaysTasks.length || totalPending <= 1) {
         setConfettiTrigger((c) => c + 1);
         toast({ title: "🎉 All tasks complete!", description: "Amazing work today!" });
       } else {
-        toast({ title: "Task completed!", description: completionNote ? "Note saved." : undefined });
+        toast({ title: "Task completed! +15 XP", description: completionNote ? "Note saved." : undefined });
       }
     }
     setNoteDialogTask(null);
