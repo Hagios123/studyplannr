@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import { NavLink, useLocation } from "react-router-dom";
 import {
   LayoutDashboard, CalendarDays, Layers, HelpCircle, MessageSquare, BarChart3,
@@ -6,12 +6,14 @@ import {
   BookOpen, Palette, Accessibility, Type, Eye, Zap, FileText, Heart,
   Library, Users, UserPlus, User, MessageCircle, MousePointer, Scan,
   AlignJustify, Focus, Glasses, Cpu, Paintbrush, Trophy, Radio,
+  Music, Volume2, VolumeX,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useTheme } from "@/hooks/useTheme";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Switch } from "@/components/ui/switch";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Slider } from "@/components/ui/slider";
 
 const ONBOARDING_KEY = "novastudy_onboarding_complete";
 
@@ -74,6 +76,14 @@ const lineSpacingOptions = [
   { value: "relaxed" as const, label: "Relaxed" },
 ];
 
+const AMBIENT_TRACKS = [
+  { id: "lofi", label: "Lo-Fi Beats", emoji: "🎵", url: "https://cdn.pixabay.com/audio/2022/05/27/audio_1808fbf07a.mp3" },
+  { id: "rain", label: "Rain Sounds", emoji: "🌧️", url: "https://cdn.pixabay.com/audio/2022/09/06/audio_80265eed33.mp3" },
+  { id: "cafe", label: "Café Ambience", emoji: "☕", url: "https://cdn.pixabay.com/audio/2024/11/04/audio_af36e1f77b.mp3" },
+  { id: "nature", label: "Forest & Birds", emoji: "🌲", url: "https://cdn.pixabay.com/audio/2022/03/09/audio_c8afbab4b2.mp3" },
+  { id: "whitenoise", label: "White Noise", emoji: "📡", url: "https://cdn.pixabay.com/audio/2024/09/26/audio_7e0deb4a5e.mp3" },
+];
+
 export function AppSidebar() {
   const [collapsed, setCollapsed] = useState(false);
   const [settingsOpen, setSettingsOpen] = useState(false);
@@ -86,6 +96,42 @@ export function AppSidebar() {
     colorBlindMode, setColorBlindMode, screenReaderHints, setScreenReaderHints,
     largeCursor, setLargeCursor, uiStyle, setUiStyle,
   } = useTheme();
+
+  // Ambient sound state
+  const [playing, setPlaying] = useState<string | null>(null);
+  const [volume, setVolume] = useState(50);
+  const audioRef = useRef<HTMLAudioElement | null>(null);
+
+  useEffect(() => {
+    return () => {
+      if (audioRef.current) {
+        audioRef.current.pause();
+        audioRef.current = null;
+      }
+    };
+  }, []);
+
+  const playTrack = (trackId: string) => {
+    const track = AMBIENT_TRACKS.find((t) => t.id === trackId);
+    if (!track) return;
+    if (playing === trackId) {
+      audioRef.current?.pause();
+      audioRef.current = null;
+      setPlaying(null);
+      return;
+    }
+    if (audioRef.current) audioRef.current.pause();
+    const audio = new Audio(track.url);
+    audio.loop = true;
+    audio.volume = volume / 100;
+    audio.play().catch(() => {});
+    audioRef.current = audio;
+    setPlaying(trackId);
+  };
+
+  useEffect(() => {
+    if (audioRef.current) audioRef.current.volume = volume / 100;
+  }, [volume]);
 
   const replayTutorial = () => {
     localStorage.removeItem(ONBOARDING_KEY);
@@ -180,6 +226,9 @@ export function AppSidebar() {
                   <TabsTrigger value="appearance" className="flex-1 gap-1.5">
                     <Palette className="w-3.5 h-3.5" /> Theme
                   </TabsTrigger>
+                  <TabsTrigger value="sounds" className="flex-1 gap-1.5">
+                    <Music className="w-3.5 h-3.5" /> Sounds
+                  </TabsTrigger>
                   <TabsTrigger value="accessibility" className="flex-1 gap-1.5">
                     <Accessibility className="w-3.5 h-3.5" /> Access
                   </TabsTrigger>
@@ -268,6 +317,63 @@ export function AppSidebar() {
                       </div>
                     </button>
                   </div>
+                </TabsContent>
+
+                <TabsContent value="sounds" className="space-y-4 pt-2">
+                  <div className="space-y-3">
+                    <label className="text-sm font-semibold flex items-center gap-2">
+                      <Music className="w-4 h-4 text-muted-foreground" /> Study Sounds
+                    </label>
+                    <div className="space-y-1.5">
+                      {AMBIENT_TRACKS.map((track) => (
+                        <button
+                          key={track.id}
+                          onClick={() => playTrack(track.id)}
+                          className={cn(
+                            "w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all",
+                            playing === track.id
+                              ? "bg-primary/10 text-primary border border-primary/20"
+                              : "bg-secondary/50 text-muted-foreground hover:bg-secondary hover:text-foreground border border-transparent"
+                          )}
+                        >
+                          <span className="text-base">{track.emoji}</span>
+                          <span className="flex-1 text-left">{track.label}</span>
+                          {playing === track.id && (
+                            <div className="flex gap-0.5 items-end">
+                              {[1, 2, 3].map((i) => (
+                                <div
+                                  key={i}
+                                  className="w-0.5 bg-primary rounded-full animate-pulse"
+                                  style={{ height: `${8 + i * 3}px`, animationDelay: `${i * 0.15}s` }}
+                                />
+                              ))}
+                            </div>
+                          )}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  <div className="space-y-2">
+                    <label className="text-sm font-semibold flex items-center gap-2">
+                      <Volume2 className="w-4 h-4 text-muted-foreground" /> Volume
+                    </label>
+                    <div className="flex items-center gap-3 px-1">
+                      <VolumeX className="w-4 h-4 text-muted-foreground shrink-0" />
+                      <Slider value={[volume]} onValueChange={(v) => setVolume(v[0])} max={100} step={1} className="flex-1" />
+                      <Volume2 className="w-4 h-4 text-muted-foreground shrink-0" />
+                    </div>
+                    <p className="text-xs text-muted-foreground text-center">{volume}%</p>
+                  </div>
+
+                  {playing && (
+                    <button
+                      onClick={() => { audioRef.current?.pause(); audioRef.current = null; setPlaying(null); }}
+                      className="w-full p-2.5 rounded-xl border border-destructive/20 bg-destructive/5 text-destructive text-sm font-medium hover:bg-destructive/10 transition-all"
+                    >
+                      Stop Playing
+                    </button>
+                  )}
                 </TabsContent>
 
                 <TabsContent value="accessibility" className="space-y-4 pt-2">
