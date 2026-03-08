@@ -1,6 +1,6 @@
 import { useState, useMemo, useEffect, useCallback } from "react";
 import { useStudyStore } from "@/stores/useStudyStore";
-import { Layers, RotateCw, Check, ChevronLeft, ChevronRight, Clock, Sparkles, Loader2 } from "lucide-react";
+import { Layers, RotateCw, Check, ChevronLeft, ChevronRight, Clock, Sparkles, Loader2, Shuffle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -23,6 +23,7 @@ export default function Flashcards() {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [flipped, setFlipped] = useState(false);
   const [filter, setFilter] = useState<"scheduled" | "all" | "unmastered">("all");
+  const [shuffled, setShuffled] = useState(false);
 
   // AI generation state
   const [genOpen, setGenOpen] = useState(false);
@@ -59,15 +60,25 @@ export default function Flashcards() {
   }, [todayTasks, currentTime]);
 
   const filtered = useMemo(() => {
+    let cards = userCards;
     if (filter === "scheduled" && activeTask) {
-      return userCards.filter(
+      cards = userCards.filter(
         (f) => f.subject === activeTask.subject ||
                f.topic?.toLowerCase().includes(activeTask.topic.toLowerCase().split(" ")[0])
       );
+    } else if (filter === "unmastered") {
+      cards = userCards.filter((f) => !f.mastered);
     }
-    if (filter === "unmastered") return userCards.filter((f) => !f.mastered);
-    return userCards;
-  }, [filter, activeTask, userCards]);
+    if (shuffled) {
+      const shuffledCards = [...cards];
+      for (let i = shuffledCards.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [shuffledCards[i], shuffledCards[j]] = [shuffledCards[j], shuffledCards[i]];
+      }
+      return shuffledCards;
+    }
+    return cards;
+  }, [filter, activeTask, userCards, shuffled]);
 
   const card = filtered[currentIndex];
 
@@ -227,6 +238,14 @@ export default function Flashcards() {
             </DialogContent>
           </Dialog>
 
+          <Button
+            variant={shuffled ? "default" : "outline"}
+            size="sm"
+            onClick={() => { setShuffled(!shuffled); setCurrentIndex(0); setFlipped(false); }}
+            className="gap-1.5"
+          >
+            <Shuffle className="w-3 h-3" /> Shuffle
+          </Button>
           <Button
             variant={filter === "scheduled" ? "default" : "outline"}
             size="sm"
