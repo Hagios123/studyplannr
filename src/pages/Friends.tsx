@@ -1,15 +1,20 @@
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
-import { UserPlus, Users, Search, Check, X, Loader2, UserCheck, UserMinus } from "lucide-react";
+import {
+  UserPlus, Users, Search, Check, X, Loader2, UserCheck, UserMinus,
+  MessageCircle, Clock, Send, Inbox,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
+import { useNavigate } from "react-router-dom";
 
 interface FriendProfile {
   id: string;
   username: string;
   display_name: string | null;
+  avatar_url?: string | null;
 }
 
 interface FriendshipRow {
@@ -20,9 +25,13 @@ interface FriendshipRow {
   created_at: string;
 }
 
+type Tab = "friends" | "received" | "sent";
+
 export default function Friends() {
   const { user } = useAuth();
   const { toast } = useToast();
+  const navigate = useNavigate();
+  const [tab, setTab] = useState<Tab>("friends");
   const [search, setSearch] = useState("");
   const [searchResults, setSearchResults] = useState<FriendProfile[]>([]);
   const [searching, setSearching] = useState(false);
@@ -39,7 +48,6 @@ export default function Friends() {
 
     if (data) {
       setFriendships(data as FriendshipRow[]);
-      // Fetch profiles for all friends
       const ids = new Set<string>();
       data.forEach((f: FriendshipRow) => {
         if (f.user_id !== user.id) ids.add(f.user_id);
@@ -48,11 +56,11 @@ export default function Friends() {
       if (ids.size > 0) {
         const { data: profiles } = await supabase
           .from("profiles")
-          .select("id, username, display_name")
+          .select("id, username, display_name, avatar_url")
           .in("id", Array.from(ids));
         if (profiles) {
           const map: Record<string, FriendProfile> = {};
-          profiles.forEach((p) => { map[p.id] = p; });
+          (profiles as any[]).forEach((p) => { map[p.id] = p; });
           setFriendProfiles(map);
         }
       }
@@ -67,7 +75,7 @@ export default function Friends() {
     setSearching(true);
     const { data } = await supabase
       .from("profiles")
-      .select("id, username, display_name")
+      .select("id, username, display_name, avatar_url")
       .or(`username.ilike.%${search.trim()}%,display_name.ilike.%${search.trim()}%`)
       .neq("id", user.id)
       .limit(10);
@@ -112,6 +120,24 @@ export default function Friends() {
   const accepted = friendships.filter((f) => f.status === "accepted");
   const existingIds = new Set(friendships.map((f) => f.user_id === user?.id ? f.friend_id : f.user_id));
 
+  const Avatar = ({ profile, size = "w-9 h-9" }: { profile?: FriendProfile | null; size?: string }) => (
+    <div className={`${size} rounded-full overflow-hidden bg-primary/20 flex items-center justify-center shrink-0`}>
+      {profile?.avatar_url ? (
+        <img src={profile.avatar_url} alt="" className="w-full h-full object-cover" />
+      ) : (
+        <span className="text-xs font-bold text-primary">
+          {(profile?.display_name || profile?.username || "?")[0].toUpperCase()}
+        </span>
+      )}
+    </div>
+  );
+
+  const tabs: { key: Tab; label: string; icon: any; count: number }[] = [
+    { key: "friends", label: "Friends", icon: Users, count: accepted.length },
+    { key: "received", label: "Received", icon: Inbox, count: incoming.length },
+    { key: "sent", label: "Sent", icon: Send, count: outgoing.length },
+  ];
+
   return (
     <div className="space-y-6">
       <div>
@@ -144,9 +170,7 @@ export default function Friends() {
             {searchResults.map((p) => (
               <div key={p.id} className="flex items-center justify-between p-3 rounded-lg bg-secondary/50 border border-border">
                 <div className="flex items-center gap-3">
-                  <div className="w-8 h-8 rounded-full bg-primary/20 flex items-center justify-center text-xs font-bold text-primary">
-                    {(p.display_name || p.username)[0].toUpperCase()}
-                  </div>
+                  <Avatar profile={p} size="w-8 h-8" />
                   <div>
                     <p className="text-sm font-medium">{p.display_name || p.username}</p>
                     <p className="text-xs text-muted-foreground">@{p.username}</p>
@@ -167,95 +191,156 @@ export default function Friends() {
         )}
       </div>
 
-      {/* Incoming requests */}
-      {incoming.length > 0 && (
-        <div className="space-y-3">
-          <h2 className="text-sm font-semibold">Pending Requests ({incoming.length})</h2>
-          {incoming.map((f) => {
-            const profile = friendProfiles[f.user_id];
-            return (
-              <div key={f.id} className="flex items-center justify-between p-3 rounded-xl border border-accent/30 bg-accent/5">
-                <div className="flex items-center gap-3">
-                  <div className="w-8 h-8 rounded-full bg-accent/20 flex items-center justify-center text-xs font-bold text-accent">
-                    {(profile?.display_name || profile?.username || "?")[0].toUpperCase()}
-                  </div>
-                  <div>
-                    <p className="text-sm font-medium">{profile?.display_name || profile?.username || "User"}</p>
-                    <p className="text-xs text-muted-foreground">Wants to be your friend</p>
-                  </div>
-                </div>
-                <div className="flex gap-2">
-                  <Button size="icon" variant="outline" className="w-8 h-8" onClick={() => respondRequest(f.id, true)}>
-                    <Check className="w-4 h-4 text-success" />
-                  </Button>
-                  <Button size="icon" variant="outline" className="w-8 h-8" onClick={() => respondRequest(f.id, false)}>
-                    <X className="w-4 h-4 text-destructive" />
-                  </Button>
-                </div>
-              </div>
-            );
-          })}
-        </div>
-      )}
-
-      {/* Friends list */}
-      <div className="space-y-3">
-        <h2 className="text-sm font-semibold">Your Friends</h2>
-        {loading ? (
-          <div className="flex items-center justify-center py-12">
-            <Loader2 className="w-5 h-5 animate-spin text-muted-foreground" />
-          </div>
-        ) : accepted.length === 0 ? (
-          <div className="text-center py-16 text-muted-foreground">
-            <Users className="w-12 h-12 mx-auto mb-3 opacity-30" />
-            <p className="font-display font-semibold">No friends yet</p>
-            <p className="text-sm mt-1">Search for users above to add friends.</p>
-          </div>
-        ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-            {accepted.map((f) => {
-              const otherId = f.user_id === user?.id ? f.friend_id : f.user_id;
-              const profile = friendProfiles[otherId];
-              return (
-                <div key={f.id} className="flex items-center justify-between p-3 rounded-xl border border-border bg-card">
-                  <div className="flex items-center gap-3">
-                    <div className="w-9 h-9 rounded-full bg-primary/20 flex items-center justify-center text-sm font-bold text-primary">
-                      {(profile?.display_name || profile?.username || "?")[0].toUpperCase()}
-                    </div>
-                    <div>
-                      <p className="text-sm font-medium">{profile?.display_name || profile?.username || "User"}</p>
-                      <p className="text-xs text-muted-foreground">@{profile?.username}</p>
-                    </div>
-                  </div>
-                  <Button size="icon" variant="ghost" className="text-muted-foreground hover:text-destructive w-8 h-8" onClick={() => removeFriend(f.id)}>
-                    <UserMinus className="w-4 h-4" />
-                  </Button>
-                </div>
-              );
-            })}
-          </div>
-        )}
+      {/* Tabs */}
+      <div className="flex gap-1 bg-secondary rounded-lg p-1">
+        {tabs.map((t) => (
+          <button
+            key={t.key}
+            onClick={() => setTab(t.key)}
+            className={`flex-1 flex items-center justify-center gap-1.5 py-2 px-3 rounded-md text-sm font-medium transition-all ${
+              tab === t.key ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:text-foreground"
+            }`}
+          >
+            <t.icon className="w-3.5 h-3.5" />
+            {t.label}
+            {t.count > 0 && (
+              <span className={`text-[10px] px-1.5 py-0.5 rounded-full ${
+                tab === t.key ? "bg-primary-foreground/20" : "bg-primary/10 text-primary"
+              }`}>
+                {t.count}
+              </span>
+            )}
+          </button>
+        ))}
       </div>
 
-      {/* Outgoing requests */}
-      {outgoing.length > 0 && (
-        <div className="space-y-3">
-          <h2 className="text-sm font-semibold text-muted-foreground">Sent Requests ({outgoing.length})</h2>
-          {outgoing.map((f) => {
-            const profile = friendProfiles[f.friend_id];
-            return (
-              <div key={f.id} className="flex items-center justify-between p-3 rounded-lg border border-border bg-secondary/30 opacity-70">
-                <div className="flex items-center gap-3">
-                  <div className="w-8 h-8 rounded-full bg-muted flex items-center justify-center text-xs font-bold text-muted-foreground">
-                    {(profile?.display_name || profile?.username || "?")[0].toUpperCase()}
-                  </div>
-                  <p className="text-sm">{profile?.display_name || profile?.username || "User"}</p>
-                </div>
-                <span className="text-xs text-muted-foreground">Pending</span>
-              </div>
-            );
-          })}
+      {loading ? (
+        <div className="flex items-center justify-center py-12">
+          <Loader2 className="w-5 h-5 animate-spin text-muted-foreground" />
         </div>
+      ) : (
+        <>
+          {/* Friends tab */}
+          {tab === "friends" && (
+            accepted.length === 0 ? (
+              <div className="text-center py-16 text-muted-foreground">
+                <Users className="w-12 h-12 mx-auto mb-3 opacity-30" />
+                <p className="font-display font-semibold">No friends yet</p>
+                <p className="text-sm mt-1">Search for users above to add friends.</p>
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                {accepted.map((f) => {
+                  const otherId = f.user_id === user?.id ? f.friend_id : f.user_id;
+                  const profile = friendProfiles[otherId];
+                  return (
+                    <div key={f.id} className="flex items-center justify-between p-3 rounded-xl border border-border bg-card">
+                      <div className="flex items-center gap-3">
+                        <Avatar profile={profile} />
+                        <div>
+                          <p className="text-sm font-medium">{profile?.display_name || profile?.username || "User"}</p>
+                          <p className="text-xs text-muted-foreground">@{profile?.username}</p>
+                        </div>
+                      </div>
+                      <div className="flex gap-1">
+                        <Button
+                          size="icon"
+                          variant="ghost"
+                          className="w-8 h-8 text-muted-foreground hover:text-primary"
+                          onClick={() => navigate(`/chat/${otherId}`)}
+                          title="Message"
+                        >
+                          <MessageCircle className="w-4 h-4" />
+                        </Button>
+                        <Button
+                          size="icon"
+                          variant="ghost"
+                          className="text-muted-foreground hover:text-destructive w-8 h-8"
+                          onClick={() => removeFriend(f.id)}
+                          title="Remove"
+                        >
+                          <UserMinus className="w-4 h-4" />
+                        </Button>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            )
+          )}
+
+          {/* Received tab */}
+          {tab === "received" && (
+            incoming.length === 0 ? (
+              <div className="text-center py-16 text-muted-foreground">
+                <Inbox className="w-12 h-12 mx-auto mb-3 opacity-30" />
+                <p className="font-display font-semibold">No pending requests</p>
+                <p className="text-sm mt-1">When someone sends you a friend request, it will appear here.</p>
+              </div>
+            ) : (
+              <div className="space-y-2">
+                {incoming.map((f) => {
+                  const profile = friendProfiles[f.user_id];
+                  return (
+                    <div key={f.id} className="flex items-center justify-between p-4 rounded-xl border border-accent/30 bg-accent/5">
+                      <div className="flex items-center gap-3">
+                        <Avatar profile={profile} />
+                        <div>
+                          <p className="text-sm font-medium">{profile?.display_name || profile?.username || "User"}</p>
+                          <p className="text-xs text-muted-foreground">@{profile?.username} · Wants to be your friend</p>
+                        </div>
+                      </div>
+                      <div className="flex gap-2">
+                        <Button size="sm" variant="outline" className="gap-1.5" onClick={() => respondRequest(f.id, true)}>
+                          <Check className="w-3.5 h-3.5 text-success" /> Accept
+                        </Button>
+                        <Button size="sm" variant="ghost" className="text-muted-foreground" onClick={() => respondRequest(f.id, false)}>
+                          <X className="w-3.5 h-3.5" />
+                        </Button>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            )
+          )}
+
+          {/* Sent tab */}
+          {tab === "sent" && (
+            outgoing.length === 0 ? (
+              <div className="text-center py-16 text-muted-foreground">
+                <Send className="w-12 h-12 mx-auto mb-3 opacity-30" />
+                <p className="font-display font-semibold">No sent requests</p>
+                <p className="text-sm mt-1">Requests you send will appear here until accepted.</p>
+              </div>
+            ) : (
+              <div className="space-y-2">
+                {outgoing.map((f) => {
+                  const profile = friendProfiles[f.friend_id];
+                  return (
+                    <div key={f.id} className="flex items-center justify-between p-3 rounded-xl border border-border bg-card">
+                      <div className="flex items-center gap-3">
+                        <Avatar profile={profile} size="w-8 h-8" />
+                        <div>
+                          <p className="text-sm font-medium">{profile?.display_name || profile?.username || "User"}</p>
+                          <p className="text-xs text-muted-foreground">@{profile?.username}</p>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <span className="flex items-center gap-1 text-xs text-muted-foreground">
+                          <Clock className="w-3 h-3" /> Pending
+                        </span>
+                        <Button size="sm" variant="ghost" className="text-xs text-muted-foreground hover:text-destructive" onClick={() => removeFriend(f.id)}>
+                          Cancel
+                        </Button>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            )
+          )}
+        </>
       )}
     </div>
   );
