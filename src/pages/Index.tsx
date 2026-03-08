@@ -75,7 +75,7 @@ function StatCard({
   );
 }
 
-function StreakCard({ tasks }: { tasks: ReturnType<typeof useStudyStore>["tasks"] }) {
+function StreakCard({ tasks }: { tasks: { date: string; status: string }[] }) {
   const streak = (() => {
     let count = 0;
     const today = new Date();
