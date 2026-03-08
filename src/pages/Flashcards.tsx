@@ -23,6 +23,7 @@ export default function Flashcards() {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [flipped, setFlipped] = useState(false);
   const [filter, setFilter] = useState<"scheduled" | "all" | "unmastered">("all");
+  const [shuffled, setShuffled] = useState(false);
 
   // AI generation state
   const [genOpen, setGenOpen] = useState(false);
