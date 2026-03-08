@@ -5,7 +5,7 @@ import {
   ChevronLeft, ChevronRight, Sparkles, Settings, Sun, Moon, Monitor,
   BookOpen, Palette, Accessibility, Type, Eye, Zap, FileText, Heart,
   Library, Users, UserPlus, User, MessageCircle, MousePointer, Scan,
-  AlignJustify, Focus, Glasses,
+  AlignJustify, Focus, Glasses, Cpu, Paintbrush,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useTheme } from "@/hooks/useTheme";
@@ -53,6 +53,12 @@ const colorOptions = [
   { value: "green" as const, label: "Matrix Green", swatch: "bg-[hsl(152,100%,45%)]" },
   { value: "red" as const, label: "Crimson Neon", swatch: "bg-[hsl(0,90%,55%)]" },
   { value: "grey" as const, label: "Steel Grey", swatch: "bg-[hsl(220,20%,58%)]" },
+  { value: "purple" as const, label: "Neon Purple", swatch: "bg-[hsl(270,100%,60%)]" },
+];
+
+const uiStyleOptions = [
+  { value: "normal" as const, icon: Paintbrush, label: "Normal" },
+  { value: "cyberpunk" as const, icon: Cpu, label: "Cyberpunk" },
 ];
 
 const fontSizeOptions = [
@@ -77,7 +83,7 @@ export function AppSidebar() {
     highContrast, setHighContrast, dyslexicFont, setDyslexicFont,
     lineSpacing, setLineSpacing, focusHighlight, setFocusHighlight,
     colorBlindMode, setColorBlindMode, screenReaderHints, setScreenReaderHints,
-    largeCursor, setLargeCursor,
+    largeCursor, setLargeCursor, uiStyle, setUiStyle,
   } = useTheme();
 
   const replayTutorial = () => {
@@ -219,6 +225,30 @@ export function AppSidebar() {
                           )}
                         >
                           <div className={cn("w-5 h-5 rounded-full shrink-0 ring-2 ring-border", opt.swatch)} />
+                          {opt.label}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* UI Style */}
+                  <div className="space-y-3">
+                    <label className="text-sm font-semibold flex items-center gap-2">
+                      <Cpu className="w-4 h-4 text-muted-foreground" /> UI Style
+                    </label>
+                    <div className="grid grid-cols-2 gap-2">
+                      {uiStyleOptions.map((opt) => (
+                        <button
+                          key={opt.value}
+                          onClick={() => setUiStyle(opt.value)}
+                          className={cn(
+                            "flex flex-col items-center gap-1.5 p-3 rounded-xl border text-xs font-medium transition-all duration-200",
+                            uiStyle === opt.value
+                              ? "border-primary bg-primary/10 text-primary glow-primary"
+                              : "border-border bg-secondary/50 text-muted-foreground hover:border-primary/30"
+                          )}
+                        >
+                          <opt.icon className="w-5 h-5" />
                           {opt.label}
                         </button>
                       ))}
