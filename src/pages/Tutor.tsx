@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from "react";
-import { MessageSquare, Send, Sparkles, BookOpen, Paperclip, FileText, X } from "lucide-react";
+import { MessageSquare, Send, Sparkles, BookOpen, Paperclip, FileText, X, Mic, MicOff } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useStudyStore } from "@/stores/useStudyStore";
