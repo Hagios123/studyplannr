@@ -438,7 +438,7 @@ export default function Groups() {
                         </div>
                         <div className="flex items-center gap-2">
                           {m.user_id === user?.id && <span className="text-xs text-primary font-medium">You</span>}
-                          {!m.permissions?.can_send_messages && <Lock className="w-3 h-3 text-muted-foreground" title="Muted" />}
+                          {!m.permissions?.can_send_messages && <Lock className="w-3 h-3 text-muted-foreground" aria-label="Muted" />}
                         </div>
                       </div>
                     );
