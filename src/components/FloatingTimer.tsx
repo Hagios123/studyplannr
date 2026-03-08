@@ -24,6 +24,7 @@ export function FloatingTimer() {
   const [running, setRunning] = useState(false);
   const [pomodoroCount, setPomodoroCount] = useState(0);
   const { addSession, subjects } = useStudyStore();
+  const { addXP, recordStreak, incrementStat } = useGamificationStore();
   const intervalRef = useRef<ReturnType<typeof setInterval>>();
 
   const focusDuration = focusMinutes * 60;
