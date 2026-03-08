@@ -1,6 +1,7 @@
 import { AppSidebar } from "./AppSidebar";
 import { OnboardingTutorial } from "@/components/OnboardingTutorial";
 import { FloatingTimer } from "@/components/FloatingTimer";
+import { CommandPalette } from "@/components/CommandPalette";
 
 export function AppLayout({ children }: { children: React.ReactNode }) {
   return (
@@ -13,6 +14,7 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
       </main>
       <FloatingTimer />
       <OnboardingTutorial />
+      <CommandPalette />
     </div>
   );
 }

@@ -13,7 +13,7 @@ export interface FreeTimeSlot {
   day: string;
   startTime: string;
   endTime: string;
-  maxHours?: number; // max study hours for this day
+  maxHours?: number;
 }
 
 export interface StudyTask {
@@ -26,11 +26,12 @@ export interface StudyTask {
   status: "pending" | "completed" | "skipped";
   priority: "low" | "medium" | "high";
   recurrence?: TaskRecurrence;
+  completionNote?: string;
 }
 
 export interface TaskRecurrence {
   type: "daily" | "weekly" | "custom";
-  interval?: number; // e.g. every N days
+  interval?: number;
   endDate?: string;
 }
 
@@ -57,6 +58,11 @@ export interface StudySession {
   subject: string;
   duration: number;
   type: "pomodoro" | "regular";
+}
+
+export interface DailyGoal {
+  targetMinutes: number;
+  enabled: boolean;
 }
 
 const DIFFICULTY_DURATION: Record<Exclude<Difficulty, "custom">, number> = {
@@ -116,11 +122,12 @@ interface StudyStore {
   subjectConfigs: SubjectConfig[];
   freeTimeSlots: FreeTimeSlot[];
   globalMaxHours: number | null;
+  dailyGoal: DailyGoal;
 
   addTask: (task: StudyTask) => void;
   updateTask: (id: string, updates: Partial<StudyTask>) => void;
   deleteTask: (id: string) => void;
-  updateTaskStatus: (id: string, status: StudyTask["status"]) => void;
+  updateTaskStatus: (id: string, status: StudyTask["status"], note?: string) => void;
   addSession: (session: StudySession) => void;
   toggleFlashcardMastered: (id: string) => void;
   addFlashcard: (card: Flashcard) => void;
@@ -132,11 +139,14 @@ interface StudyStore {
   addFreeTimeSlot: (slot: FreeTimeSlot) => void;
   removeFreeTimeSlot: (day: string) => void;
   setGlobalMaxHours: (hours: number | null) => void;
+  setDailyGoal: (goal: Partial<DailyGoal>) => void;
 
   addCustomSubject: (name: string) => void;
 
   autoGenerateTasks: (startDate: string, days: number, customConfigs?: SubjectConfig[]) => void;
   generateRecurringTasks: (task: StudyTask) => void;
+
+  exportSchedule: () => string;
 }
 
 const defaultFreeTimeSlots: FreeTimeSlot[] = [
@@ -149,21 +159,16 @@ const defaultFreeTimeSlots: FreeTimeSlot[] = [
   { day: "Sunday", startTime: "10:00", endTime: "14:00" },
 ];
 
-const mockFlashcards: Flashcard[] = [];
-
-const mockQuiz: QuizQuestion[] = [];
-
-const mockSessions: StudySession[] = [];
-
 export const useStudyStore = create<StudyStore>((set, get) => ({
   tasks: [],
-  flashcards: mockFlashcards,
-  quizQuestions: mockQuiz,
-  sessions: mockSessions,
+  flashcards: [],
+  quizQuestions: [],
+  sessions: [],
   subjects: [],
   subjectConfigs: [],
   freeTimeSlots: defaultFreeTimeSlots,
   globalMaxHours: null,
+  dailyGoal: { targetMinutes: 120, enabled: false },
 
   addTask: (task) => set((state) => ({ tasks: [...state.tasks, task] })),
 
@@ -175,9 +180,9 @@ export const useStudyStore = create<StudyStore>((set, get) => ({
   deleteTask: (id) =>
     set((state) => ({ tasks: state.tasks.filter((t) => t.id !== id) })),
 
-  updateTaskStatus: (id, status) =>
+  updateTaskStatus: (id, status, note?) =>
     set((state) => ({
-      tasks: state.tasks.map((t) => (t.id === id ? { ...t, status } : t)),
+      tasks: state.tasks.map((t) => (t.id === id ? { ...t, status, completionNote: note || t.completionNote } : t)),
     })),
 
   addSession: (session) => set((state) => ({ sessions: [...state.sessions, session] })),
@@ -223,6 +228,9 @@ export const useStudyStore = create<StudyStore>((set, get) => ({
     })),
 
   setGlobalMaxHours: (hours) => set({ globalMaxHours: hours }),
+
+  setDailyGoal: (goal) =>
+    set((state) => ({ dailyGoal: { ...state.dailyGoal, ...goal } })),
 
   addCustomSubject: (name) =>
     set((state) => {
@@ -305,12 +313,12 @@ export const useStudyStore = create<StudyStore>((set, get) => ({
     const newTasks: StudyTask[] = [];
     const startDate = new Date(task.date + "T12:00:00");
     const endDate = recurrence.endDate ? new Date(recurrence.endDate + "T12:00:00") : new Date(startDate);
-    if (!recurrence.endDate) endDate.setDate(endDate.getDate() + 30); // default 30 days
+    if (!recurrence.endDate) endDate.setDate(endDate.getDate() + 30);
 
     const interval = recurrence.type === "daily" ? 1 : recurrence.type === "weekly" ? 7 : (recurrence.interval || 1);
 
     let current = new Date(startDate);
-    current.setDate(current.getDate() + interval); // skip original
+    current.setDate(current.getDate() + interval);
 
     while (current <= endDate) {
       const dateStr = current.toISOString().split("T")[0];
@@ -324,5 +332,37 @@ export const useStudyStore = create<StudyStore>((set, get) => ({
     }
 
     set((state) => ({ tasks: [...state.tasks, ...newTasks] }));
+  },
+
+  exportSchedule: () => {
+    const { tasks, subjectConfigs } = get();
+    const lines: string[] = [
+      "=== Study AI - Schedule Export ===",
+      `Generated: ${new Date().toLocaleString()}`,
+      "",
+    ];
+
+    if (subjectConfigs.length > 0) {
+      lines.push("SUBJECTS:");
+      subjectConfigs.forEach((s) => {
+        lines.push(`  • ${s.name} (${s.difficulty}) — ${s.topics.length} topics`);
+      });
+      lines.push("");
+    }
+
+    const dates = [...new Set(tasks.map((t) => t.date))].sort();
+    dates.forEach((date) => {
+      const dayTasks = tasks.filter((t) => t.date === date).sort((a, b) => a.timeSlot.localeCompare(b.timeSlot));
+      const d = new Date(date + "T12:00:00");
+      lines.push(`📅 ${d.toLocaleDateString("en-US", { weekday: "long", month: "short", day: "numeric" })}`);
+      dayTasks.forEach((t) => {
+        const status = t.status === "completed" ? "✅" : t.status === "skipped" ? "⏭️" : "⬜";
+        lines.push(`  ${status} ${t.timeSlot} — ${t.topic} (${t.subject}, ${t.duration}min)`);
+        if (t.completionNote) lines.push(`     📝 ${t.completionNote}`);
+      });
+      lines.push("");
+    });
+
+    return lines.join("\n");
   },
 }));
