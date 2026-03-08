@@ -314,11 +314,44 @@ export default function Tutor() {
         >
           <Paperclip className="w-4 h-4" />
         </Button>
+        {/* Voice input */}
+        {"webkitSpeechRecognition" in window || "SpeechRecognition" in window ? (
+          <Button
+            variant={isListening ? "default" : "outline"}
+            size="icon"
+            className={`shrink-0 ${isListening ? "bg-destructive hover:bg-destructive/90 animate-pulse" : ""}`}
+            title={isListening ? "Stop listening" : "Voice input"}
+            onClick={() => {
+              if (isListening) {
+                recognitionRef.current?.stop();
+                setIsListening(false);
+                return;
+              }
+              const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+              const recognition = new SpeechRecognition();
+              recognition.continuous = false;
+              recognition.interimResults = false;
+              recognition.lang = "en-US";
+              recognition.onresult = (event: any) => {
+                const transcript = event.results[0][0].transcript;
+                setInput((prev) => prev ? `${prev} ${transcript}` : transcript);
+                setIsListening(false);
+              };
+              recognition.onerror = () => setIsListening(false);
+              recognition.onend = () => setIsListening(false);
+              recognitionRef.current = recognition;
+              recognition.start();
+              setIsListening(true);
+            }}
+          >
+            {isListening ? <MicOff className="w-4 h-4" /> : <Mic className="w-4 h-4" />}
+          </Button>
+        ) : null}
         <Input
           value={input}
           onChange={(e) => setInput(e.target.value)}
           onKeyDown={(e) => e.key === "Enter" && !e.shiftKey && sendMessage()}
-          placeholder={selectedSubject !== "all" ? `Ask about ${selectedSubject}...` : "Ask anything or upload a file..."}
+          placeholder={isListening ? "Listening..." : selectedSubject !== "all" ? `Ask about ${selectedSubject}...` : "Ask anything or upload a file..."}
           className="flex-1"
         />
         <Button onClick={sendMessage} disabled={(!input.trim() && uploadedFiles.length === 0) || isTyping} size="icon">
