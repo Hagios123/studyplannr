@@ -253,6 +253,16 @@ export default function Groups() {
             <div className="space-y-3 pt-2">
               <Input placeholder="Group name" value={name} onChange={(e) => setName(e.target.value)} autoFocus />
               <Textarea placeholder="Description (optional)" value={description} onChange={(e) => setDescription(e.target.value)} rows={2} />
+              <div className="flex items-center justify-between p-3 rounded-lg bg-secondary/50 border border-border">
+                <div className="flex items-center gap-2">
+                  <Globe className="w-4 h-4 text-muted-foreground" />
+                  <div>
+                    <p className="text-sm font-medium">Public Group</p>
+                    <p className="text-xs text-muted-foreground">Anyone can find and join</p>
+                  </div>
+                </div>
+                <Switch checked={isPublicToggle} onCheckedChange={setIsPublicToggle} />
+              </div>
               <div className="space-y-2">
                 <label className="text-sm font-medium">Color</label>
                 <div className="flex gap-2">
@@ -264,6 +274,49 @@ export default function Groups() {
                 </div>
               </div>
               <Button onClick={handleCreate} disabled={!name.trim()} className="w-full">Create Group</Button>
+            </div>
+          </DialogContent>
+        </Dialog>
+
+        <Dialog open={browseOpen} onOpenChange={(open) => { setBrowseOpen(open); if (open) fetchPublicGroups(); }}>
+          <DialogTrigger asChild>
+            <Button size="sm" variant="outline" className="gap-1.5"><Globe className="w-3.5 h-3.5" /> Browse Public</Button>
+          </DialogTrigger>
+          <DialogContent className="max-w-md">
+            <DialogHeader><DialogTitle>Browse Public Groups</DialogTitle></DialogHeader>
+            <div className="space-y-3 pt-2">
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                <Input placeholder="Search public groups..." value={publicSearch} onChange={(e) => setPublicSearch(e.target.value)} className="pl-9" />
+              </div>
+              {loadingPublic ? (
+                <div className="flex justify-center py-8"><Loader2 className="w-5 h-5 animate-spin text-muted-foreground" /></div>
+              ) : (
+                <div className="space-y-2 max-h-80 overflow-y-auto">
+                  {publicGroups
+                    .filter((g) => g.name.toLowerCase().includes(publicSearch.toLowerCase()) || g.description.toLowerCase().includes(publicSearch.toLowerCase()))
+                    .map((group) => (
+                      <div key={group.id} className="flex items-center justify-between p-3 rounded-lg border border-border bg-card">
+                        <div className="flex items-center gap-3 min-w-0">
+                          <div className="w-8 h-8 rounded-lg flex items-center justify-center text-xs font-bold shrink-0"
+                            style={{ backgroundColor: `${group.color}20`, color: group.color }}>
+                            {group.name.slice(0, 2).toUpperCase()}
+                          </div>
+                          <div className="min-w-0">
+                            <p className="text-sm font-medium truncate">{group.name}</p>
+                            {group.description && <p className="text-xs text-muted-foreground truncate">{group.description}</p>}
+                          </div>
+                        </div>
+                        <Button size="sm" className="gap-1 h-7 text-xs shrink-0 ml-2" onClick={() => handleJoinGroup(group.id)}>
+                          <UserPlus className="w-3 h-3" /> Join
+                        </Button>
+                      </div>
+                    ))}
+                  {publicGroups.filter((g) => g.name.toLowerCase().includes(publicSearch.toLowerCase())).length === 0 && (
+                    <p className="text-sm text-muted-foreground text-center py-8">No public groups found</p>
+                  )}
+                </div>
+              )}
             </div>
           </DialogContent>
         </Dialog>
