@@ -62,6 +62,11 @@ export default function Groups() {
   const [addMemberId, setAddMemberId] = useState("");
   const [uploading, setUploading] = useState(false);
   const [groupSearch, setGroupSearch] = useState("");
+  const [browseOpen, setBrowseOpen] = useState(false);
+  const [publicGroups, setPublicGroups] = useState<GroupRow[]>([]);
+  const [publicSearch, setPublicSearch] = useState("");
+  const [loadingPublic, setLoadingPublic] = useState(false);
+  const [isPublicToggle, setIsPublicToggle] = useState(false);
 
   const fetchAll = useCallback(async () => {
     if (!user) return;

@@ -1,9 +1,10 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
-import { Users, Plus, Loader2, Clock, Wifi, WifiOff } from "lucide-react";
+import { Users, Plus, Loader2, Clock, Wifi, Search, Globe, Lock, LogIn } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Switch } from "@/components/ui/switch";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { useToast } from "@/hooks/use-toast";
 
@@ -12,7 +13,7 @@ interface RoomMember {
   username: string;
   display_name: string | null;
   avatar_url: string | null;
-  status: string; // "studying" | "break" | "idle"
+  status: string;
   timer_minutes?: number;
   joined_at: string;
 }
@@ -21,9 +22,9 @@ interface StudyRoom {
   id: string;
   name: string;
   host_id: string;
-  host_name: string;
-  members: RoomMember[];
+  is_public: boolean;
   created_at: string;
+  host_name?: string;
 }
 
 export default function StudyRooms() {
@@ -32,26 +33,56 @@ export default function StudyRooms() {
   const [rooms, setRooms] = useState<StudyRoom[]>([]);
   const [activeRoom, setActiveRoom] = useState<StudyRoom | null>(null);
   const [roomName, setRoomName] = useState("");
+  const [isPublic, setIsPublic] = useState(true);
   const [createOpen, setCreateOpen] = useState(false);
   const [myStatus, setMyStatus] = useState<"studying" | "break" | "idle">("idle");
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [presenceMembers, setPresenceMembers] = useState<RoomMember[]>([]);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [hostProfiles, setHostProfiles] = useState<Record<string, { username: string; display_name: string | null }>>({});
 
-  // Create a room (stored in-memory with realtime presence)
-  const createRoom = () => {
+  const fetchRooms = useCallback(async () => {
+    if (!user) return;
+    const { data } = await supabase
+      .from("study_rooms")
+      .select("*")
+      .order("created_at", { ascending: false });
+    const roomList = (data || []) as StudyRoom[];
+    setRooms(roomList);
+
+    // Fetch host profiles
+    const hostIds = [...new Set(roomList.map((r) => r.host_id))];
+    if (hostIds.length > 0) {
+      const { data: profiles } = await supabase
+        .from("profiles")
+        .select("id, username, display_name")
+        .in("id", hostIds);
+      const map: Record<string, { username: string; display_name: string | null }> = {};
+      (profiles || []).forEach((p: any) => { map[p.id] = p; });
+      setHostProfiles(map);
+    }
+    setLoading(false);
+  }, [user]);
+
+  useEffect(() => { fetchRooms(); }, [fetchRooms]);
+
+  const createRoom = async () => {
     if (!roomName.trim() || !user) return;
-    const room: StudyRoom = {
-      id: `room-${Date.now()}-${Math.random().toString(36).slice(2)}`,
-      name: roomName.trim(),
-      host_id: user.id,
-      host_name: profile?.display_name || profile?.username || "Host",
-      members: [],
-      created_at: new Date().toISOString(),
-    };
-    setRooms((prev) => [...prev, room]);
+    const { data, error } = await supabase
+      .from("study_rooms")
+      .insert({ name: roomName.trim(), host_id: user.id, is_public: isPublic })
+      .select()
+      .single();
+    if (error) {
+      toast({ title: "Error", description: error.message, variant: "destructive" });
+      return;
+    }
     setRoomName("");
+    setIsPublic(true);
     setCreateOpen(false);
-    joinRoom(room);
+    toast({ title: "Room created!" });
+    fetchRooms();
+    joinRoom(data as StudyRoom);
   };
 
   const joinRoom = (room: StudyRoom) => {
@@ -59,7 +90,6 @@ export default function StudyRooms() {
     setActiveRoom(room);
     setMyStatus("idle");
 
-    // Use Supabase Realtime Presence
     const channel = supabase.channel(`study-room-${room.id}`, {
       config: { presence: { key: user.id } },
     });
@@ -92,10 +122,6 @@ export default function StudyRooms() {
           });
         }
       });
-
-    return () => {
-      channel.unsubscribe();
-    };
   };
 
   const updateStatus = async (status: "studying" | "break" | "idle") => {
@@ -121,6 +147,13 @@ export default function StudyRooms() {
     setMyStatus("idle");
   };
 
+  const deleteRoom = async (roomId: string) => {
+    await supabase.from("study_rooms").delete().eq("id", roomId);
+    toast({ title: "Room deleted" });
+    if (activeRoom?.id === roomId) leaveRoom();
+    fetchRooms();
+  };
+
   const statusColors: Record<string, string> = {
     studying: "bg-success text-success-foreground",
     break: "bg-accent text-accent-foreground",
@@ -132,6 +165,10 @@ export default function StudyRooms() {
     break: "☕ On Break",
     idle: "💤 Idle",
   };
+
+  const filteredRooms = rooms.filter((r) =>
+    r.name.toLowerCase().includes(searchQuery.toLowerCase())
+  );
 
   if (activeRoom) {
     return (
@@ -151,7 +188,6 @@ export default function StudyRooms() {
           </Button>
         </div>
 
-        {/* Status controls */}
         <div className="flex gap-2 flex-wrap">
           {(["studying", "break", "idle"] as const).map((s) => (
             <Button
@@ -166,7 +202,6 @@ export default function StudyRooms() {
           ))}
         </div>
 
-        {/* Members grid */}
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
           {presenceMembers.map((member) => (
             <div
@@ -216,6 +251,14 @@ export default function StudyRooms() {
     );
   }
 
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center py-20">
+        <Loader2 className="w-6 h-6 animate-spin text-muted-foreground" />
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
@@ -245,6 +288,16 @@ export default function StudyRooms() {
                 onKeyDown={(e) => e.key === "Enter" && createRoom()}
                 autoFocus
               />
+              <div className="flex items-center justify-between p-3 rounded-lg bg-secondary/50 border border-border">
+                <div className="flex items-center gap-2">
+                  <Globe className="w-4 h-4 text-muted-foreground" />
+                  <div>
+                    <p className="text-sm font-medium">Public Room</p>
+                    <p className="text-xs text-muted-foreground">Anyone can find and join</p>
+                  </div>
+                </div>
+                <Switch checked={isPublic} onCheckedChange={setIsPublic} />
+              </div>
               <Button onClick={createRoom} disabled={!roomName.trim()} className="w-full">
                 Create & Join
               </Button>
@@ -253,35 +306,72 @@ export default function StudyRooms() {
         </Dialog>
       </div>
 
-      {rooms.length === 0 ? (
+      {/* Search */}
+      <div className="relative">
+        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+        <Input
+          placeholder="Search rooms by name..."
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+          className="pl-9"
+        />
+      </div>
+
+      {filteredRooms.length === 0 ? (
         <div className="text-center py-20 text-muted-foreground">
           <Users className="w-12 h-12 mx-auto mb-3 opacity-30" />
-          <p className="font-display font-semibold text-lg">No study rooms yet</p>
-          <p className="text-sm mt-1">Create a room to start studying with friends.</p>
+          <p className="font-display font-semibold text-lg">
+            {rooms.length === 0 ? "No study rooms yet" : "No matching rooms"}
+          </p>
+          <p className="text-sm mt-1">
+            {rooms.length === 0 ? "Create a room to start studying with friends." : "Try a different search term."}
+          </p>
         </div>
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-          {rooms.map((room) => (
-            <button
-              key={room.id}
-              onClick={() => joinRoom(room)}
-              className="text-left p-4 rounded-xl border border-border bg-card hover:border-primary/30 transition-all group"
-            >
-              <div className="flex items-center gap-3 mb-2">
-                <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center">
-                  <Users className="w-5 h-5 text-primary" />
+          {filteredRooms.map((room) => {
+            const host = hostProfiles[room.host_id];
+            const isHost = room.host_id === user?.id;
+            return (
+              <div
+                key={room.id}
+                className="text-left p-4 rounded-xl border border-border bg-card hover:border-primary/30 transition-all group"
+              >
+                <div className="flex items-center gap-3 mb-2">
+                  <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center">
+                    <Users className="w-5 h-5 text-primary" />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <h3 className="font-display font-semibold text-sm truncate">{room.name}</h3>
+                    <p className="text-xs text-muted-foreground">
+                      by {isHost ? "You" : host?.display_name || host?.username || "Unknown"}
+                    </p>
+                  </div>
+                  {room.is_public ? (
+                    <Globe className="w-3.5 h-3.5 text-muted-foreground" title="Public" />
+                  ) : (
+                    <Lock className="w-3.5 h-3.5 text-muted-foreground" title="Private" />
+                  )}
                 </div>
-                <div className="flex-1 min-w-0">
-                  <h3 className="font-display font-semibold text-sm truncate">{room.name}</h3>
-                  <p className="text-xs text-muted-foreground">by {room.host_name}</p>
+                <div className="flex items-center justify-between mt-3">
+                  <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                    <Clock className="w-3 h-3" />
+                    <span>{new Date(room.created_at).toLocaleDateString()}</span>
+                  </div>
+                  <div className="flex gap-1">
+                    <Button size="sm" variant="default" className="gap-1 h-7 text-xs" onClick={() => joinRoom(room)}>
+                      <LogIn className="w-3 h-3" /> Join
+                    </Button>
+                    {isHost && (
+                      <Button size="sm" variant="ghost" className="h-7 text-xs text-destructive hover:text-destructive" onClick={() => deleteRoom(room.id)}>
+                        Delete
+                      </Button>
+                    )}
+                  </div>
                 </div>
               </div>
-              <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                <Clock className="w-3 h-3" />
-                <span>{new Date(room.created_at).toLocaleTimeString()}</span>
-              </div>
-            </button>
-          ))}
+            );
+          })}
         </div>
       )}
     </div>
