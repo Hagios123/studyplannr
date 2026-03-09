@@ -119,17 +119,44 @@ export default function Groups() {
 
   useEffect(() => { fetchAll(); }, [fetchAll]);
 
+  const fetchPublicGroups = useCallback(async () => {
+    if (!user) return;
+    setLoadingPublic(true);
+    const { data } = await supabase
+      .from("study_groups")
+      .select("*")
+      .eq("is_public", true);
+    // Filter out groups user is already a member of
+    const myGroupIds = new Set(groups.map((g) => g.id));
+    setPublicGroups(((data || []) as GroupRow[]).filter((g) => !myGroupIds.has(g.id)));
+    setLoadingPublic(false);
+  }, [user, groups]);
+
+  const handleJoinGroup = async (groupId: string) => {
+    if (!user) return;
+    const { error } = await supabase.from("group_members").insert({
+      group_id: groupId, user_id: user.id, role: "member",
+    });
+    if (error) {
+      toast({ title: "Error joining group", description: error.message, variant: "destructive" });
+      return;
+    }
+    toast({ title: "Joined group!" });
+    setBrowseOpen(false);
+    fetchAll();
+  };
+
   const handleCreate = async () => {
     if (!name.trim() || !user) return;
     const { data, error } = await supabase.from("study_groups").insert({
-      name: name.trim(), description: description.trim(), color, created_by: user.id,
-    }).select().single();
+      name: name.trim(), description: description.trim(), color, created_by: user.id, is_public: isPublicToggle,
+    } as any).select().single();
     if (error) { toast({ title: "Error", description: error.message, variant: "destructive" }); return; }
     await supabase.from("group_members").insert({
       group_id: data.id, user_id: user.id, role: "owner",
       permissions: { can_send_messages: true, can_edit_group: true, is_admin: true },
     } as any);
-    setName(""); setDescription(""); setCreateOpen(false); setActiveGroup(data.id);
+    setName(""); setDescription(""); setIsPublicToggle(false); setCreateOpen(false); setActiveGroup(data.id);
     toast({ title: "Study group created!" }); fetchAll();
   };
 

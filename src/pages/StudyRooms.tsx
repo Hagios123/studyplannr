@@ -347,11 +347,13 @@ export default function StudyRooms() {
                       by {isHost ? "You" : host?.display_name || host?.username || "Unknown"}
                     </p>
                   </div>
-                  {room.is_public ? (
-                    <Globe className="w-3.5 h-3.5 text-muted-foreground" title="Public" />
-                  ) : (
-                    <Lock className="w-3.5 h-3.5 text-muted-foreground" title="Private" />
-                  )}
+                  <span title={room.is_public ? "Public" : "Private"}>
+                    {room.is_public ? (
+                      <Globe className="w-3.5 h-3.5 text-muted-foreground" />
+                    ) : (
+                      <Lock className="w-3.5 h-3.5 text-muted-foreground" />
+                    )}
+                  </span>
                 </div>
                 <div className="flex items-center justify-between mt-3">
                   <div className="flex items-center gap-2 text-xs text-muted-foreground">
