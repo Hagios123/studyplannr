@@ -398,6 +398,7 @@ export type Database = {
           created_by: string
           description: string | null
           id: string
+          is_public: boolean
           name: string
         }
         Insert: {
@@ -406,6 +407,7 @@ export type Database = {
           created_by: string
           description?: string | null
           id?: string
+          is_public?: boolean
           name: string
         }
         Update: {
@@ -414,6 +416,31 @@ export type Database = {
           created_by?: string
           description?: string | null
           id?: string
+          is_public?: boolean
+          name?: string
+        }
+        Relationships: []
+      }
+      study_rooms: {
+        Row: {
+          created_at: string
+          host_id: string
+          id: string
+          is_public: boolean
+          name: string
+        }
+        Insert: {
+          created_at?: string
+          host_id: string
+          id?: string
+          is_public?: boolean
+          name: string
+        }
+        Update: {
+          created_at?: string
+          host_id?: string
+          id?: string
+          is_public?: boolean
           name?: string
         }
         Relationships: []
