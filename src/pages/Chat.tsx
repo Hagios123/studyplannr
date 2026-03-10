@@ -279,6 +279,14 @@ export default function Chat() {
     setContextMenu(null);
   };
 
+  // Pin/unpin message
+  const handleTogglePin = async (msg: Message) => {
+    await supabase.from("private_messages").update({ pinned: !msg.pinned } as any).eq("id", msg.id);
+    setMessages((prev) => prev.map((m) => m.id === msg.id ? { ...m, pinned: !msg.pinned } : m));
+    toast({ title: msg.pinned ? "Message unpinned" : "Message pinned" });
+    setContextMenu(null);
+  };
+
   // Copy message
   const handleCopy = (content: string) => {
     navigator.clipboard.writeText(content);
