@@ -57,7 +57,7 @@ export default function NotificationCenter() {
     const channel = supabase
       .channel("notifications-" + user.id)
       .on("postgres_changes", { event: "INSERT", schema: "public", table: "notifications" }, (payload) => {
-        const notif = payload.new as unknown as Notification;
+        const notif = payload.new as unknown as AppNotification;
         if (notif.user_id === user.id) {
           setNotifications((prev) => [notif, ...prev]);
         }
