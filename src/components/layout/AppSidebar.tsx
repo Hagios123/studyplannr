@@ -6,7 +6,7 @@ import {
   BookOpen, Palette, Accessibility, Type, Eye, Zap, FileText, Heart,
   Library, Users, UserPlus, User, MessageCircle, MousePointer, Scan,
   AlignJustify, Focus, Glasses, Cpu, Paintbrush, Trophy, Radio,
-  Music, Volume2, VolumeX, Upload, Trash2, Loader2,
+  Music, Volume2, VolumeX, Upload, Trash2, Loader2, Rss, Compass,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useTheme } from "@/hooks/useTheme";
