@@ -341,28 +341,54 @@ export type Database = {
         Row: {
           content: string
           created_at: string
+          edited_at: string | null
+          file_name: string | null
+          file_url: string | null
           id: string
+          message_type: string
+          reactions: Json
           read: boolean
           receiver_id: string
+          reply_to: string | null
           sender_id: string
         }
         Insert: {
           content: string
           created_at?: string
+          edited_at?: string | null
+          file_name?: string | null
+          file_url?: string | null
           id?: string
+          message_type?: string
+          reactions?: Json
           read?: boolean
           receiver_id: string
+          reply_to?: string | null
           sender_id: string
         }
         Update: {
           content?: string
           created_at?: string
+          edited_at?: string | null
+          file_name?: string | null
+          file_url?: string | null
           id?: string
+          message_type?: string
+          reactions?: Json
           read?: boolean
           receiver_id?: string
+          reply_to?: string | null
           sender_id?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "private_messages_reply_to_fkey"
+            columns: ["reply_to"]
+            isOneToOne: false
+            referencedRelation: "private_messages"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       profiles: {
         Row: {
