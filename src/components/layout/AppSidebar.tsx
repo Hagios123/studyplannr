@@ -253,6 +253,9 @@ export function AppSidebar() {
         </nav>
 
         <div className="p-2 border-t border-sidebar-border space-y-1">
+          <div className={cn("flex items-center", collapsed ? "justify-center" : "px-2")}>
+            <NotificationCenter />
+          </div>
           <Dialog open={settingsOpen} onOpenChange={setSettingsOpen}>
             <DialogTrigger asChild>
               <button className={cn(
