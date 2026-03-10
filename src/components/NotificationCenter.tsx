@@ -49,7 +49,7 @@ export default function NotificationCenter() {
         .eq("user_id", user.id)
         .order("created_at", { ascending: false })
         .limit(50);
-      if (data) setNotifications(data as unknown as Notification[]);
+      if (data) setNotifications(data as unknown as AppNotification[]);
     };
     load();
 
