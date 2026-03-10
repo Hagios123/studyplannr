@@ -14,7 +14,7 @@ export default function Profile() {
   const { user } = useAuth();
   const { toast } = useToast();
   const fileRef = useRef<HTMLInputElement>(null);
-  const { totalXP, getStreak, getLevelProgress, getAchievements, tasksCompleted, flashcardsMastered, quizzesCompleted, sessionsCompleted } = useGamificationStore();
+  const { totalXP, getLevel, getStreak, getLevelProgress, getAchievements, tasksCompleted, flashcardsMastered, quizzesCompleted, sessionsCompleted } = useGamificationStore();
   const { tasks, sessions } = useStudyStore();
 
   const [displayName, setDisplayName] = useState("");
