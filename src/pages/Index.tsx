@@ -391,12 +391,16 @@ const Index = () => {
             <Sparkles className="w-5 h-5 text-accent" />
             Quick Actions
           </h2>
+          <SpacedRepetitionCard />
           <div className="space-y-2">
             <QuickActionCard icon={BookOpen} title="Study Planner" description="Plan your sessions" to="/planner" variant="primary" />
             <QuickActionCard icon={Sparkles} title="Ask AI Tutor" description="Get help with any topic" to="/tutor" variant="accent" />
             <QuickActionCard icon={CheckCircle2} title="Review Flashcards" description={`${useStudyStore.getState().flashcards.filter((f) => !f.mastered && (f.id.startsWith("ai-") || f.id.startsWith("sched-"))).length} cards to review`} to="/flashcards" />
             <QuickActionCard icon={TrendingUp} title="View Analytics" description="Track your progress" to="/analytics" />
           </div>
+
+          {/* Weekly Challenges */}
+          <WeeklyChallenges />
 
           {/* Keyboard shortcut hint */}
           <div className="hidden md:flex items-center gap-2 text-[10px] text-muted-foreground px-2">

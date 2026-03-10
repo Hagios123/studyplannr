@@ -78,6 +78,8 @@ export default function Analytics() {
           </div>
         ))}
       </div>
+      {/* Study Heatmap */}
+      <StudyHeatmap />
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <div className="lg:col-span-2 bg-card border border-border rounded-xl p-6">
