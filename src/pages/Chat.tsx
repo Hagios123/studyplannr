@@ -172,12 +172,13 @@ export default function Chat() {
     return () => { supabase.removeChannel(presenceChannel); };
   }, [user, recipientId]);
 
-  // Update typing status
+  // Update typing status via the existing presence channel
+  const presenceChannelRef = useRef<ReturnType<typeof supabase.channel> | null>(null);
+
   const broadcastTyping = useCallback(async (typing: boolean) => {
-    if (!user || !recipientId) return;
-    const channel = supabase.channel(`presence-dm-${[user.id, recipientId].sort().join("-")}`);
-    await channel.track({ user_id: user.id, typing });
-  }, [user, recipientId]);
+    if (!presenceChannelRef.current) return;
+    await presenceChannelRef.current.track({ user_id: user?.id, typing });
+  }, [user]);
 
   const handleInputChange = (value: string) => {
     setNewMessage(value);
