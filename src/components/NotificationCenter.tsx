@@ -6,8 +6,9 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 
-interface Notification {
+interface AppNotification {
   id: string;
+  user_id: string;
   type: string;
   title: string;
   body: string | null;
