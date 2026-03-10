@@ -5,7 +5,7 @@ import { useAuth } from "@/hooks/useAuth";
 import {
   Send, ChevronLeft, Loader2, MessageCircle, Search, Smile, Paperclip,
   Reply, Trash2, Copy, Check, CheckCheck, X, Image as ImageIcon, File,
-  ArrowDown,
+  ArrowDown, Pin, PinOff,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
