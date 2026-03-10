@@ -222,6 +222,7 @@ export default function Chat() {
       file_name: null,
       reactions: {},
       edited_at: null,
+      pinned: false,
     };
     setMessages((prev) => [...prev, optimisticMsg]);
     setNewMessage("");
