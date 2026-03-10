@@ -27,6 +27,8 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
 import { Progress } from "@/components/ui/progress";
+import WeeklyChallenges from "@/components/WeeklyChallenges";
+import SpacedRepetitionCard from "@/components/SpacedRepetitionCard";
 
 const TIPS = [
   "Use the Pomodoro technique: 25 min focus, 5 min break. Your brain retains more with spaced intervals.",
