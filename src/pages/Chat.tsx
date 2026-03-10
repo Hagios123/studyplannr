@@ -203,16 +203,43 @@ export default function Chat() {
     setSending(true);
     setIsTyping(false);
     broadcastTyping(false);
-    const { error } = await supabase.from("private_messages").insert({
+    const content = newMessage.trim();
+    const replyId = replyingTo?.id || null;
+    
+    // Optimistic update - add message immediately
+    const optimisticMsg: Message = {
+      id: `temp-${Date.now()}`,
       sender_id: user.id,
       receiver_id: recipientId,
-      content: newMessage.trim(),
-      reply_to: replyingTo?.id || null,
-    } as any);
-    if (!error) {
-      setNewMessage("");
-      setReplyingTo(null);
-      inputRef.current?.focus();
+      content,
+      created_at: new Date().toISOString(),
+      read: false,
+      reply_to: replyId,
+      message_type: "text",
+      file_url: null,
+      file_name: null,
+      reactions: {},
+      edited_at: null,
+    };
+    setMessages((prev) => [...prev, optimisticMsg]);
+    setNewMessage("");
+    setReplyingTo(null);
+    inputRef.current?.focus();
+
+    const { data, error } = await supabase.from("private_messages").insert({
+      sender_id: user.id,
+      receiver_id: recipientId,
+      content,
+      reply_to: replyId,
+    } as any).select().single();
+    
+    if (error) {
+      // Remove optimistic message on error
+      setMessages((prev) => prev.filter((m) => m.id !== optimisticMsg.id));
+      toast({ title: "Failed to send", variant: "destructive" });
+    } else if (data) {
+      // Replace optimistic message with real one
+      setMessages((prev) => prev.map((m) => m.id === optimisticMsg.id ? (data as unknown as Message) : m));
     }
     setSending(false);
   };
