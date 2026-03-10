@@ -27,6 +27,7 @@ interface Message {
   file_name: string | null;
   reactions: Record<string, string[]>;
   edited_at: string | null;
+  pinned: boolean;
 }
 
 interface Profile {
