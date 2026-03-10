@@ -123,8 +123,9 @@ export default function Chat() {
           if ((msg.sender_id === user.id && msg.receiver_id === recipientId) ||
               (msg.sender_id === recipientId && msg.receiver_id === user.id)) {
             setMessages((prev) => {
-              if (prev.some((m) => m.id === msg.id)) return prev;
-              return [...prev, msg];
+              // Remove any optimistic temp message and avoid duplicates
+              const filtered = prev.filter((m) => m.id !== msg.id && !(m.id.startsWith("temp-") && m.sender_id === msg.sender_id && m.content === msg.content));
+              return [...filtered, msg];
             });
             // Auto mark as read if from recipient
             if (msg.sender_id === recipientId) {
