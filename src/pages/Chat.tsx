@@ -595,6 +595,11 @@ export default function Chat() {
             className="flex items-center gap-2 w-full px-3 py-2 text-sm hover:bg-secondary">
             <Copy className="w-3.5 h-3.5" /> Copy Text
           </button>
+          <button onClick={() => handleTogglePin(contextMenu.msg)}
+            className="flex items-center gap-2 w-full px-3 py-2 text-sm hover:bg-secondary">
+            {contextMenu.msg.pinned ? <PinOff className="w-3.5 h-3.5" /> : <Pin className="w-3.5 h-3.5" />}
+            {contextMenu.msg.pinned ? "Unpin" : "Pin"}
+          </button>
           {contextMenu.msg.sender_id === user?.id && (
             <button onClick={() => handleDelete(contextMenu.msg.id)}
               className="flex items-center gap-2 w-full px-3 py-2 text-sm hover:bg-secondary text-destructive">
