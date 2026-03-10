@@ -1,6 +1,7 @@
 import { useStudyStore } from "@/stores/useStudyStore";
 import { BarChart3, TrendingUp, Clock, BookOpen } from "lucide-react";
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from "recharts";
+import StudyHeatmap from "@/components/StudyHeatmap";
 
 export default function Analytics() {
   const { sessions, tasks } = useStudyStore();
