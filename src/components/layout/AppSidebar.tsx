@@ -17,6 +17,7 @@ import { Slider } from "@/components/ui/slider";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
+import NotificationCenter from "@/components/NotificationCenter";
 
 const ONBOARDING_KEY = "novastudy_onboarding_complete";
 
