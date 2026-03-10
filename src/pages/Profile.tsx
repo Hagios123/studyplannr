@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
-import { useGamificationStore, ACHIEVEMENTS, getLevel } from "@/stores/useGamificationStore";
+import { useGamificationStore, ACHIEVEMENTS } from "@/stores/useGamificationStore";
 import { useStudyStore } from "@/stores/useStudyStore";
 import { User, Camera, Save, Loader2, Trophy, Flame, BookOpen, CheckCircle2, Brain, Clock } from "lucide-react";
 import { Button } from "@/components/ui/button";
