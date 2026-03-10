@@ -152,6 +152,7 @@ export default function Chat() {
     const presenceChannel = supabase.channel(`presence-dm-${[user.id, recipientId].sort().join("-")}`, {
       config: { presence: { key: user.id } },
     });
+    presenceChannelRef.current = presenceChannel;
     presenceChannel
       .on("presence", { event: "sync" }, () => {
         const state = presenceChannel.presenceState();
@@ -169,7 +170,10 @@ export default function Chat() {
           await presenceChannel.track({ user_id: user.id, typing: false });
         }
       });
-    return () => { supabase.removeChannel(presenceChannel); };
+    return () => {
+      presenceChannelRef.current = null;
+      supabase.removeChannel(presenceChannel);
+    };
   }, [user, recipientId]);
 
   // Update typing status via the existing presence channel
