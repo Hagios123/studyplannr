@@ -26,6 +26,9 @@ import Chat from "./pages/Chat";
 import ChatList from "./pages/ChatList";
 import GroupChat from "./pages/GroupChat";
 import StudyRooms from "./pages/StudyRooms";
+import Leaderboard from "./pages/Leaderboard";
+import Feed from "./pages/Feed";
+import Discover from "./pages/Discover";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
