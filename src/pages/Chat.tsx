@@ -123,8 +123,9 @@ export default function Chat() {
           if ((msg.sender_id === user.id && msg.receiver_id === recipientId) ||
               (msg.sender_id === recipientId && msg.receiver_id === user.id)) {
             setMessages((prev) => {
-              if (prev.some((m) => m.id === msg.id)) return prev;
-              return [...prev, msg];
+              // Remove any optimistic temp message and avoid duplicates
+              const filtered = prev.filter((m) => m.id !== msg.id && !(m.id.startsWith("temp-") && m.sender_id === msg.sender_id && m.content === msg.content));
+              return [...filtered, msg];
             });
             // Auto mark as read if from recipient
             if (msg.sender_id === recipientId) {
@@ -152,6 +153,7 @@ export default function Chat() {
     const presenceChannel = supabase.channel(`presence-dm-${[user.id, recipientId].sort().join("-")}`, {
       config: { presence: { key: user.id } },
     });
+    presenceChannelRef.current = presenceChannel;
     presenceChannel
       .on("presence", { event: "sync" }, () => {
         const state = presenceChannel.presenceState();
@@ -169,15 +171,19 @@ export default function Chat() {
           await presenceChannel.track({ user_id: user.id, typing: false });
         }
       });
-    return () => { supabase.removeChannel(presenceChannel); };
+    return () => {
+      presenceChannelRef.current = null;
+      supabase.removeChannel(presenceChannel);
+    };
   }, [user, recipientId]);
 
-  // Update typing status
+  // Update typing status via the existing presence channel
+  const presenceChannelRef = useRef<ReturnType<typeof supabase.channel> | null>(null);
+
   const broadcastTyping = useCallback(async (typing: boolean) => {
-    if (!user || !recipientId) return;
-    const channel = supabase.channel(`presence-dm-${[user.id, recipientId].sort().join("-")}`);
-    await channel.track({ user_id: user.id, typing });
-  }, [user, recipientId]);
+    if (!presenceChannelRef.current) return;
+    await presenceChannelRef.current.track({ user_id: user?.id, typing });
+  }, [user]);
 
   const handleInputChange = (value: string) => {
     setNewMessage(value);
@@ -198,16 +204,43 @@ export default function Chat() {
     setSending(true);
     setIsTyping(false);
     broadcastTyping(false);
-    const { error } = await supabase.from("private_messages").insert({
+    const content = newMessage.trim();
+    const replyId = replyingTo?.id || null;
+    
+    // Optimistic update - add message immediately
+    const optimisticMsg: Message = {
+      id: `temp-${Date.now()}`,
       sender_id: user.id,
       receiver_id: recipientId,
-      content: newMessage.trim(),
-      reply_to: replyingTo?.id || null,
-    } as any);
-    if (!error) {
-      setNewMessage("");
-      setReplyingTo(null);
-      inputRef.current?.focus();
+      content,
+      created_at: new Date().toISOString(),
+      read: false,
+      reply_to: replyId,
+      message_type: "text",
+      file_url: null,
+      file_name: null,
+      reactions: {},
+      edited_at: null,
+    };
+    setMessages((prev) => [...prev, optimisticMsg]);
+    setNewMessage("");
+    setReplyingTo(null);
+    inputRef.current?.focus();
+
+    const { data, error } = await supabase.from("private_messages").insert({
+      sender_id: user.id,
+      receiver_id: recipientId,
+      content,
+      reply_to: replyId,
+    } as any).select().single();
+    
+    if (error) {
+      // Remove optimistic message on error
+      setMessages((prev) => prev.filter((m) => m.id !== optimisticMsg.id));
+      toast({ title: "Failed to send", variant: "destructive" });
+    } else if (data) {
+      // Replace optimistic message with real one
+      setMessages((prev) => prev.map((m) => m.id === optimisticMsg.id ? (data as unknown as Message) : m));
     }
     setSending(false);
   };
