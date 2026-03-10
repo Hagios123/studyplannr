@@ -1,6 +1,7 @@
 import { useStudyStore } from "@/stores/useStudyStore";
 import { BarChart3, TrendingUp, Clock, BookOpen } from "lucide-react";
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from "recharts";
+import StudyHeatmap from "@/components/StudyHeatmap";
 
 export default function Analytics() {
   const { sessions, tasks } = useStudyStore();
@@ -77,6 +78,8 @@ export default function Analytics() {
           </div>
         ))}
       </div>
+      {/* Study Heatmap */}
+      <StudyHeatmap />
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <div className="lg:col-span-2 bg-card border border-border rounded-xl p-6">

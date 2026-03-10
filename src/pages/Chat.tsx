@@ -5,7 +5,7 @@ import { useAuth } from "@/hooks/useAuth";
 import {
   Send, ChevronLeft, Loader2, MessageCircle, Search, Smile, Paperclip,
   Reply, Trash2, Copy, Check, CheckCheck, X, Image as ImageIcon, File,
-  ArrowDown,
+  ArrowDown, Pin, PinOff,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -27,6 +27,7 @@ interface Message {
   file_name: string | null;
   reactions: Record<string, string[]>;
   edited_at: string | null;
+  pinned: boolean;
 }
 
 interface Profile {
@@ -221,6 +222,7 @@ export default function Chat() {
       file_name: null,
       reactions: {},
       edited_at: null,
+      pinned: false,
     };
     setMessages((prev) => [...prev, optimisticMsg]);
     setNewMessage("");
@@ -274,6 +276,14 @@ export default function Chat() {
   // Delete message
   const handleDelete = async (msgId: string) => {
     await supabase.from("private_messages").delete().eq("id", msgId);
+    setContextMenu(null);
+  };
+
+  // Pin/unpin message
+  const handleTogglePin = async (msg: Message) => {
+    await supabase.from("private_messages").update({ pinned: !msg.pinned } as any).eq("id", msg.id);
+    setMessages((prev) => prev.map((m) => m.id === msg.id ? { ...m, pinned: !msg.pinned } : m));
+    toast({ title: msg.pinned ? "Message unpinned" : "Message pinned" });
     setContextMenu(null);
   };
 
@@ -584,6 +594,11 @@ export default function Chat() {
           <button onClick={() => handleCopy(contextMenu.msg.content)}
             className="flex items-center gap-2 w-full px-3 py-2 text-sm hover:bg-secondary">
             <Copy className="w-3.5 h-3.5" /> Copy Text
+          </button>
+          <button onClick={() => handleTogglePin(contextMenu.msg)}
+            className="flex items-center gap-2 w-full px-3 py-2 text-sm hover:bg-secondary">
+            {contextMenu.msg.pinned ? <PinOff className="w-3.5 h-3.5" /> : <Pin className="w-3.5 h-3.5" />}
+            {contextMenu.msg.pinned ? "Unpin" : "Pin"}
           </button>
           {contextMenu.msg.sender_id === user?.id && (
             <button onClick={() => handleDelete(contextMenu.msg.id)}

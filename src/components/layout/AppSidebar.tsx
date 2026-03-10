@@ -6,7 +6,7 @@ import {
   BookOpen, Palette, Accessibility, Type, Eye, Zap, FileText, Heart,
   Library, Users, UserPlus, User, MessageCircle, MousePointer, Scan,
   AlignJustify, Focus, Glasses, Cpu, Paintbrush, Trophy, Radio,
-  Music, Volume2, VolumeX, Upload, Trash2, Loader2,
+  Music, Volume2, VolumeX, Upload, Trash2, Loader2, Rss, Compass,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useTheme } from "@/hooks/useTheme";
@@ -17,6 +17,7 @@ import { Slider } from "@/components/ui/slider";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
+import NotificationCenter from "@/components/NotificationCenter";
 
 const ONBOARDING_KEY = "novastudy_onboarding_complete";
 
@@ -36,6 +37,9 @@ const toolItems = [
   { to: "/friends", icon: UserPlus, label: "Friends" },
   { to: "/chat", icon: MessageCircle, label: "Chat" },
   { to: "/study-rooms", icon: Radio, label: "Rooms" },
+  { to: "/leaderboard", icon: Trophy, label: "Ranks" },
+  { to: "/feed", icon: Rss, label: "Feed" },
+  { to: "/discover", icon: Compass, label: "Discover" },
   { to: "/profile", icon: User, label: "Profile" },
   { to: "/analytics", icon: BarChart3, label: "Stats" },
 ];
@@ -249,6 +253,9 @@ export function AppSidebar() {
         </nav>
 
         <div className="p-2 border-t border-sidebar-border space-y-1">
+          <div className={cn("flex items-center", collapsed ? "justify-center" : "px-2")}>
+            <NotificationCenter />
+          </div>
           <Dialog open={settingsOpen} onOpenChange={setSettingsOpen}>
             <DialogTrigger asChild>
               <button className={cn(

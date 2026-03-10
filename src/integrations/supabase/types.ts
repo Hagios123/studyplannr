@@ -337,6 +337,39 @@ export type Database = {
           },
         ]
       }
+      notifications: {
+        Row: {
+          body: string | null
+          created_at: string
+          id: string
+          metadata: Json
+          read: boolean
+          title: string
+          type: string
+          user_id: string
+        }
+        Insert: {
+          body?: string | null
+          created_at?: string
+          id?: string
+          metadata?: Json
+          read?: boolean
+          title: string
+          type: string
+          user_id: string
+        }
+        Update: {
+          body?: string | null
+          created_at?: string
+          id?: string
+          metadata?: Json
+          read?: boolean
+          title?: string
+          type?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       private_messages: {
         Row: {
           content: string
@@ -346,6 +379,7 @@ export type Database = {
           file_url: string | null
           id: string
           message_type: string
+          pinned: boolean
           reactions: Json
           read: boolean
           receiver_id: string
@@ -360,6 +394,7 @@ export type Database = {
           file_url?: string | null
           id?: string
           message_type?: string
+          pinned?: boolean
           reactions?: Json
           read?: boolean
           receiver_id: string
@@ -374,6 +409,7 @@ export type Database = {
           file_url?: string | null
           id?: string
           message_type?: string
+          pinned?: boolean
           reactions?: Json
           read?: boolean
           receiver_id?: string
@@ -414,6 +450,36 @@ export type Database = {
           display_name?: string | null
           id?: string
           username?: string
+        }
+        Relationships: []
+      }
+      study_feed: {
+        Row: {
+          content: string
+          created_at: string
+          id: string
+          likes: Json
+          metadata: Json
+          type: string
+          user_id: string
+        }
+        Insert: {
+          content: string
+          created_at?: string
+          id?: string
+          likes?: Json
+          metadata?: Json
+          type?: string
+          user_id: string
+        }
+        Update: {
+          content?: string
+          created_at?: string
+          id?: string
+          likes?: Json
+          metadata?: Json
+          type?: string
+          user_id?: string
         }
         Relationships: []
       }
@@ -468,6 +534,45 @@ export type Database = {
           id?: string
           is_public?: boolean
           name?: string
+        }
+        Relationships: []
+      }
+      user_study_stats: {
+        Row: {
+          current_streak: number
+          flashcards_mastered: number
+          id: string
+          longest_streak: number
+          quizzes_completed: number
+          tasks_completed: number
+          total_study_minutes: number
+          total_xp: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          current_streak?: number
+          flashcards_mastered?: number
+          id?: string
+          longest_streak?: number
+          quizzes_completed?: number
+          tasks_completed?: number
+          total_study_minutes?: number
+          total_xp?: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          current_streak?: number
+          flashcards_mastered?: number
+          id?: string
+          longest_streak?: number
+          quizzes_completed?: number
+          tasks_completed?: number
+          total_study_minutes?: number
+          total_xp?: number
+          updated_at?: string
+          user_id?: string
         }
         Relationships: []
       }
