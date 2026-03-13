@@ -30,16 +30,14 @@ const studyItems = [
 ];
 
 const toolItems = [
+  { to: "/course-generator", icon: GraduationCap, label: "AI Course" },
   { to: "/notes", icon: FileText, label: "Notes" },
   { to: "/habits", icon: Heart, label: "Habits" },
   { to: "/resources", icon: Library, label: "Library" },
   { to: "/groups", icon: Users, label: "Groups" },
   { to: "/friends", icon: UserPlus, label: "Friends" },
   { to: "/chat", icon: MessageCircle, label: "Chat" },
-  { to: "/study-rooms", icon: Radio, label: "Rooms" },
   { to: "/leaderboard", icon: Trophy, label: "Ranks" },
-  { to: "/feed", icon: Rss, label: "Feed" },
-  { to: "/discover", icon: Compass, label: "Discover" },
   { to: "/profile", icon: User, label: "Profile" },
   { to: "/analytics", icon: BarChart3, label: "Stats" },
 ];
