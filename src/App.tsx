@@ -25,10 +25,8 @@ import Profile from "./pages/Profile";
 import Chat from "./pages/Chat";
 import ChatList from "./pages/ChatList";
 import GroupChat from "./pages/GroupChat";
-import StudyRooms from "./pages/StudyRooms";
 import Leaderboard from "./pages/Leaderboard";
-import Feed from "./pages/Feed";
-import Discover from "./pages/Discover";
+import CourseGenerator from "./pages/CourseGenerator";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -54,10 +52,8 @@ function AnimatedRoutes() {
         <Route path="/chat" element={<PageTransition><ChatList /></PageTransition>} />
         <Route path="/chat/:recipientId" element={<PageTransition><Chat /></PageTransition>} />
         <Route path="/group-chat/:groupId" element={<PageTransition><GroupChat /></PageTransition>} />
-        <Route path="/study-rooms" element={<PageTransition><StudyRooms /></PageTransition>} />
         <Route path="/leaderboard" element={<PageTransition><Leaderboard /></PageTransition>} />
-        <Route path="/feed" element={<PageTransition><Feed /></PageTransition>} />
-        <Route path="/discover" element={<PageTransition><Discover /></PageTransition>} />
+        <Route path="/course-generator" element={<PageTransition><CourseGenerator /></PageTransition>} />
         <Route path="*" element={<PageTransition><NotFound /></PageTransition>} />
       </Routes>
     </AnimatePresence>

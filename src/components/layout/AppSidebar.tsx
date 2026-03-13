@@ -5,8 +5,8 @@ import {
   ChevronLeft, ChevronRight, Sparkles, Settings, Sun, Moon, Monitor,
   BookOpen, Palette, Accessibility, Type, Eye, Zap, FileText, Heart,
   Library, Users, UserPlus, User, MessageCircle, MousePointer, Scan,
-  AlignJustify, Focus, Glasses, Cpu, Paintbrush, Trophy, Radio,
-  Music, Volume2, VolumeX, Upload, Trash2, Loader2, Rss, Compass,
+  AlignJustify, Focus, Glasses, Cpu, Paintbrush, Trophy, GraduationCap,
+  Music, Volume2, VolumeX, Upload, Trash2, Loader2,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useTheme } from "@/hooks/useTheme";
@@ -30,16 +30,14 @@ const studyItems = [
 ];
 
 const toolItems = [
+  { to: "/course-generator", icon: GraduationCap, label: "AI Course" },
   { to: "/notes", icon: FileText, label: "Notes" },
   { to: "/habits", icon: Heart, label: "Habits" },
   { to: "/resources", icon: Library, label: "Library" },
   { to: "/groups", icon: Users, label: "Groups" },
   { to: "/friends", icon: UserPlus, label: "Friends" },
   { to: "/chat", icon: MessageCircle, label: "Chat" },
-  { to: "/study-rooms", icon: Radio, label: "Rooms" },
   { to: "/leaderboard", icon: Trophy, label: "Ranks" },
-  { to: "/feed", icon: Rss, label: "Feed" },
-  { to: "/discover", icon: Compass, label: "Discover" },
   { to: "/profile", icon: User, label: "Profile" },
   { to: "/analytics", icon: BarChart3, label: "Stats" },
 ];
