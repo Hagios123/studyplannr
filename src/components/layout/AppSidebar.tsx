@@ -5,8 +5,8 @@ import {
   ChevronLeft, ChevronRight, Sparkles, Settings, Sun, Moon, Monitor,
   BookOpen, Palette, Accessibility, Type, Eye, Zap, FileText, Heart,
   Library, Users, UserPlus, User, MessageCircle, MousePointer, Scan,
-  AlignJustify, Focus, Glasses, Cpu, Paintbrush, Trophy, Radio,
-  Music, Volume2, VolumeX, Upload, Trash2, Loader2, Rss, Compass,
+  AlignJustify, Focus, Glasses, Cpu, Paintbrush, Trophy, GraduationCap,
+  Music, Volume2, VolumeX, Upload, Trash2, Loader2,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useTheme } from "@/hooks/useTheme";
