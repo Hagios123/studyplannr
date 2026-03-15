@@ -38,8 +38,7 @@ function AnimatedRoutes() {
       <Routes location={location} key={location.pathname}>
         <Route path="/" element={<PageTransition><Index /></PageTransition>} />
         <Route path="/planner" element={<PageTransition><Planner /></PageTransition>} />
-        <Route path="/flashcards" element={<PageTransition><Flashcards /></PageTransition>} />
-        <Route path="/quiz" element={<PageTransition><Quiz /></PageTransition>} />
+        <Route path="/learn" element={<PageTransition><Learn /></PageTransition>} />
         <Route path="/tutor" element={<PageTransition><Tutor /></PageTransition>} />
         <Route path="/analytics" element={<PageTransition><Analytics /></PageTransition>} />
         <Route path="/notes" element={<PageTransition><Notes /></PageTransition>} />
