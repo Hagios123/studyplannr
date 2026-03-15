@@ -27,8 +27,7 @@ import {
 const pages = [
   { name: "Dashboard", to: "/", icon: LayoutDashboard },
   { name: "Planner", to: "/planner", icon: CalendarDays },
-  { name: "Flashcards", to: "/flashcards", icon: Layers },
-  { name: "Quiz", to: "/quiz", icon: HelpCircle },
+  { name: "Learn", to: "/learn", icon: Layers },
   { name: "AI Tutor", to: "/tutor", icon: MessageSquare },
   { name: "Analytics", to: "/analytics", icon: BarChart3 },
   { name: "Notes", to: "/notes", icon: FileText },
