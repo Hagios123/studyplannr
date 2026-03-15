@@ -24,8 +24,7 @@ const ONBOARDING_KEY = "novastudy_onboarding_complete";
 const studyItems = [
   { to: "/", icon: LayoutDashboard, label: "Dashboard" },
   { to: "/planner", icon: CalendarDays, label: "Planner" },
-  { to: "/flashcards", icon: Layers, label: "Cards" },
-  { to: "/quiz", icon: HelpCircle, label: "Quiz" },
+  { to: "/learn", icon: GraduationCap, label: "Learn" },
   { to: "/tutor", icon: MessageSquare, label: "Tutor" },
 ];
 
