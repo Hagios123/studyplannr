@@ -31,7 +31,7 @@ export default function SpacedRepetitionCard() {
 
   return (
     <Link
-      to="/flashcards"
+      to="/learn"
       className="block p-4 rounded-xl border border-accent/20 bg-accent/5 hover:border-accent/40 transition-all group"
     >
       <div className="flex items-center gap-3">

@@ -90,7 +90,7 @@ export function StudyNotificationProvider({ children }: { children: React.ReactN
                     <div className="flex gap-2 mt-3">
                       <button
                         onClick={() => {
-                          navigate("/quiz");
+                          navigate("/learn");
                           dismissNotification(notif.id);
                         }}
                         className="text-xs px-3 py-1.5 rounded-lg bg-accent/10 text-accent hover:bg-accent/20 transition-colors flex items-center gap-1"
