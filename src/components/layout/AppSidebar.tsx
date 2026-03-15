@@ -29,7 +29,6 @@ const studyItems = [
 ];
 
 const toolItems = [
-  { to: "/course-generator", icon: GraduationCap, label: "AI Course" },
   { to: "/notes", icon: FileText, label: "Notes" },
   { to: "/habits", icon: Heart, label: "Habits" },
   { to: "/resources", icon: Library, label: "Library" },
