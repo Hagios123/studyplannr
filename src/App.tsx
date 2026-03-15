@@ -25,7 +25,7 @@ import Chat from "./pages/Chat";
 import ChatList from "./pages/ChatList";
 import GroupChat from "./pages/GroupChat";
 import Leaderboard from "./pages/Leaderboard";
-import CourseGenerator from "./pages/CourseGenerator";
+
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
