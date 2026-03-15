@@ -27,8 +27,7 @@ import {
 const pages = [
   { name: "Dashboard", to: "/", icon: LayoutDashboard },
   { name: "Planner", to: "/planner", icon: CalendarDays },
-  { name: "Flashcards", to: "/flashcards", icon: Layers },
-  { name: "Quiz", to: "/quiz", icon: HelpCircle },
+  { name: "Learn", to: "/learn", icon: Layers },
   { name: "AI Tutor", to: "/tutor", icon: MessageSquare },
   { name: "Analytics", to: "/analytics", icon: BarChart3 },
   { name: "Notes", to: "/notes", icon: FileText },
@@ -98,7 +97,7 @@ export function CommandPalette() {
         {recentCards.length > 0 && (
           <CommandGroup heading="Flashcards">
             {recentCards.map((f) => (
-              <CommandItem key={f.id} onSelect={() => go("/flashcards")}>
+              <CommandItem key={f.id} onSelect={() => go("/learn")}>
                 <Layers className="mr-2 h-4 w-4 text-muted-foreground" />
                 <span className="flex-1 truncate">{f.front}</span>
                 <span className="text-xs text-muted-foreground">{f.subject}</span>

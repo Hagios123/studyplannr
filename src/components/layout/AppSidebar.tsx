@@ -24,13 +24,11 @@ const ONBOARDING_KEY = "novastudy_onboarding_complete";
 const studyItems = [
   { to: "/", icon: LayoutDashboard, label: "Dashboard" },
   { to: "/planner", icon: CalendarDays, label: "Planner" },
-  { to: "/flashcards", icon: Layers, label: "Cards" },
-  { to: "/quiz", icon: HelpCircle, label: "Quiz" },
+  { to: "/learn", icon: GraduationCap, label: "Learn" },
   { to: "/tutor", icon: MessageSquare, label: "Tutor" },
 ];
 
 const toolItems = [
-  { to: "/course-generator", icon: GraduationCap, label: "AI Course" },
   { to: "/notes", icon: FileText, label: "Notes" },
   { to: "/habits", icon: Heart, label: "Habits" },
   { to: "/resources", icon: Library, label: "Library" },
@@ -45,7 +43,7 @@ const toolItems = [
 const mobileItems = [
   { to: "/", icon: LayoutDashboard, label: "Home" },
   { to: "/planner", icon: CalendarDays, label: "Plan" },
-  { to: "/flashcards", icon: Layers, label: "Cards" },
+  { to: "/learn", icon: GraduationCap, label: "Learn" },
   { to: "/chat", icon: MessageCircle, label: "Chat" },
   { to: "/groups", icon: Users, label: "Groups" },
 ];

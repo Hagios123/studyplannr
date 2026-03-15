@@ -227,7 +227,7 @@ const Index = () => {
               <div className="text-center py-12 space-y-3">
                 <Brain className="w-10 h-10 text-muted-foreground/30 mx-auto" />
                 <p className="text-sm text-muted-foreground">No tasks for today</p>
-                <Link to="/course-generator">
+                <Link to="/learn">
                   <Button variant="outline" size="sm" className="gap-2">
                     <GraduationCap className="w-3.5 h-3.5" /> Generate a Course
                   </Button>
@@ -284,10 +284,10 @@ const Index = () => {
           </h2>
           <SpacedRepetitionCard />
           <div className="space-y-2">
-            <QuickActionCard icon={GraduationCap} title="AI Course Generator" description="Generate a full course from any topic" to="/course-generator" variant="primary" />
+            <QuickActionCard icon={GraduationCap} title="Learn" description="Courses, flashcards & quizzes" to="/learn" variant="primary" />
             <QuickActionCard icon={Sparkles} title="Ask AI Tutor" description="Get help with any topic" to="/tutor" variant="accent" />
             <QuickActionCard icon={BookOpen} title="Study Planner" description="Plan your sessions" to="/planner" />
-            <QuickActionCard icon={CheckCircle2} title="Flashcards" description={`${unmasteredCards} cards to review`} to="/flashcards" />
+            <QuickActionCard icon={TrendingUp} title="Analytics" description="Deep study insights" to="/analytics" />
             <QuickActionCard icon={TrendingUp} title="Analytics" description="Deep study insights" to="/analytics" />
           </div>
 

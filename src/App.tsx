@@ -11,8 +11,7 @@ import { AnimatePresence } from "framer-motion";
 import { ThemeProvider } from "@/hooks/useTheme";
 import Index from "./pages/Index";
 import Planner from "./pages/Planner";
-import Flashcards from "./pages/Flashcards";
-import Quiz from "./pages/Quiz";
+import Learn from "./pages/Learn";
 import Tutor from "./pages/Tutor";
 import Analytics from "./pages/Analytics";
 import Notes from "./pages/Notes";
@@ -26,7 +25,7 @@ import Chat from "./pages/Chat";
 import ChatList from "./pages/ChatList";
 import GroupChat from "./pages/GroupChat";
 import Leaderboard from "./pages/Leaderboard";
-import CourseGenerator from "./pages/CourseGenerator";
+
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -39,8 +38,7 @@ function AnimatedRoutes() {
       <Routes location={location} key={location.pathname}>
         <Route path="/" element={<PageTransition><Index /></PageTransition>} />
         <Route path="/planner" element={<PageTransition><Planner /></PageTransition>} />
-        <Route path="/flashcards" element={<PageTransition><Flashcards /></PageTransition>} />
-        <Route path="/quiz" element={<PageTransition><Quiz /></PageTransition>} />
+        <Route path="/learn" element={<PageTransition><Learn /></PageTransition>} />
         <Route path="/tutor" element={<PageTransition><Tutor /></PageTransition>} />
         <Route path="/analytics" element={<PageTransition><Analytics /></PageTransition>} />
         <Route path="/notes" element={<PageTransition><Notes /></PageTransition>} />
@@ -53,7 +51,7 @@ function AnimatedRoutes() {
         <Route path="/chat/:recipientId" element={<PageTransition><Chat /></PageTransition>} />
         <Route path="/group-chat/:groupId" element={<PageTransition><GroupChat /></PageTransition>} />
         <Route path="/leaderboard" element={<PageTransition><Leaderboard /></PageTransition>} />
-        <Route path="/course-generator" element={<PageTransition><CourseGenerator /></PageTransition>} />
+        
         <Route path="*" element={<PageTransition><NotFound /></PageTransition>} />
       </Routes>
     </AnimatePresence>
