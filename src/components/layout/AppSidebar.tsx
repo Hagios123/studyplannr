@@ -43,7 +43,7 @@ const toolItems = [
 const mobileItems = [
   { to: "/", icon: LayoutDashboard, label: "Home" },
   { to: "/planner", icon: CalendarDays, label: "Plan" },
-  { to: "/flashcards", icon: Layers, label: "Cards" },
+  { to: "/learn", icon: GraduationCap, label: "Learn" },
   { to: "/chat", icon: MessageCircle, label: "Chat" },
   { to: "/groups", icon: Users, label: "Groups" },
 ];

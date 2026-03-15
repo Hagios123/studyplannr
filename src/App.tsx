@@ -51,7 +51,7 @@ function AnimatedRoutes() {
         <Route path="/chat/:recipientId" element={<PageTransition><Chat /></PageTransition>} />
         <Route path="/group-chat/:groupId" element={<PageTransition><GroupChat /></PageTransition>} />
         <Route path="/leaderboard" element={<PageTransition><Leaderboard /></PageTransition>} />
-        <Route path="/course-generator" element={<PageTransition><CourseGenerator /></PageTransition>} />
+        
         <Route path="*" element={<PageTransition><NotFound /></PageTransition>} />
       </Routes>
     </AnimatePresence>
