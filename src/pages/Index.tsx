@@ -227,7 +227,7 @@ const Index = () => {
               <div className="text-center py-12 space-y-3">
                 <Brain className="w-10 h-10 text-muted-foreground/30 mx-auto" />
                 <p className="text-sm text-muted-foreground">No tasks for today</p>
-                <Link to="/course-generator">
+                <Link to="/learn">
                   <Button variant="outline" size="sm" className="gap-2">
                     <GraduationCap className="w-3.5 h-3.5" /> Generate a Course
                   </Button>
