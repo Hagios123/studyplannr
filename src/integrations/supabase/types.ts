@@ -14,6 +14,77 @@ export type Database = {
   }
   public: {
     Tables: {
+      assignment_recipients: {
+        Row: {
+          assignment_id: string
+          created_at: string
+          grade: string | null
+          id: string
+          submission_text: string | null
+          submitted: boolean
+          submitted_at: string | null
+          user_id: string
+        }
+        Insert: {
+          assignment_id: string
+          created_at?: string
+          grade?: string | null
+          id?: string
+          submission_text?: string | null
+          submitted?: boolean
+          submitted_at?: string | null
+          user_id: string
+        }
+        Update: {
+          assignment_id?: string
+          created_at?: string
+          grade?: string | null
+          id?: string
+          submission_text?: string | null
+          submitted?: boolean
+          submitted_at?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "assignment_recipients_assignment_id_fkey"
+            columns: ["assignment_id"]
+            isOneToOne: false
+            referencedRelation: "assignments"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      assignments: {
+        Row: {
+          created_at: string
+          created_by: string
+          description: string | null
+          due_date: string | null
+          id: string
+          title: string
+          year_level: string | null
+        }
+        Insert: {
+          created_at?: string
+          created_by: string
+          description?: string | null
+          due_date?: string | null
+          id?: string
+          title: string
+          year_level?: string | null
+        }
+        Update: {
+          created_at?: string
+          created_by?: string
+          description?: string | null
+          due_date?: string | null
+          id?: string
+          title?: string
+          year_level?: string | null
+        }
+        Relationships: []
+      }
       blocked_users: {
         Row: {
           blocked_id: string
@@ -428,28 +499,37 @@ export type Database = {
       }
       profiles: {
         Row: {
+          approval_status: string
           avatar_url: string | null
           bio: string | null
           created_at: string
           display_name: string | null
           id: string
+          studying: string | null
           username: string
+          year_level: string | null
         }
         Insert: {
+          approval_status?: string
           avatar_url?: string | null
           bio?: string | null
           created_at?: string
           display_name?: string | null
           id: string
+          studying?: string | null
           username: string
+          year_level?: string | null
         }
         Update: {
+          approval_status?: string
           avatar_url?: string | null
           bio?: string | null
           created_at?: string
           display_name?: string | null
           id?: string
+          studying?: string | null
           username?: string
+          year_level?: string | null
         }
         Relationships: []
       }
@@ -513,6 +593,24 @@ export type Database = {
         }
         Relationships: []
       }
+      study_options: {
+        Row: {
+          created_at: string
+          id: string
+          name: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          name: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          name?: string
+        }
+        Relationships: []
+      }
       study_rooms: {
         Row: {
           created_at: string
@@ -534,6 +632,45 @@ export type Database = {
           id?: string
           is_public?: boolean
           name?: string
+        }
+        Relationships: []
+      }
+      teacher_year_assignments: {
+        Row: {
+          created_at: string
+          id: string
+          teacher_id: string
+          year_level: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          teacher_id: string
+          year_level: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          teacher_id?: string
+          year_level?: string
+        }
+        Relationships: []
+      }
+      user_roles: {
+        Row: {
+          id: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Insert: {
+          id?: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Update: {
+          id?: string
+          role?: Database["public"]["Enums"]["app_role"]
+          user_id?: string
         }
         Relationships: []
       }
@@ -581,6 +718,14 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      get_user_role: { Args: { _user_id: string }; Returns: string }
+      has_role: {
+        Args: {
+          _role: Database["public"]["Enums"]["app_role"]
+          _user_id: string
+        }
+        Returns: boolean
+      }
       is_group_member: {
         Args: { _group_id: string; _user_id: string }
         Returns: boolean
@@ -588,7 +733,7 @@ export type Database = {
       is_public_group: { Args: { _group_id: string }; Returns: boolean }
     }
     Enums: {
-      [_ in never]: never
+      app_role: "admin" | "teacher" | "student"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -715,6 +860,8 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      app_role: ["admin", "teacher", "student"],
+    },
   },
 } as const
