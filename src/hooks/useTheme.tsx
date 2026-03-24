@@ -5,6 +5,10 @@ type ColorTheme = "blue" | "green" | "red" | "grey" | "purple";
 type FontSize = "normal" | "large" | "xl";
 type LineSpacing = "compact" | "normal" | "relaxed";
 type UiStyle = "normal" | "cyberpunk" | "retro" | "glass" | "minimal" | "steampunk";
+type FontFamily = "default" | "mono" | "serif" | "orbitron" | "comic";
+type SidebarPosition = "left" | "right";
+type CardStyle = "solid" | "glass" | "outline" | "neon";
+type BorderRadius = "sharp" | "default" | "rounded" | "pill";
 
 interface ThemeContext {
   mode: Mode;
@@ -32,6 +36,16 @@ interface ThemeContext {
   setLargeCursor: (v: boolean) => void;
   uiStyle: UiStyle;
   setUiStyle: (v: UiStyle) => void;
+  fontFamily: FontFamily;
+  setFontFamily: (v: FontFamily) => void;
+  sidebarPosition: SidebarPosition;
+  setSidebarPosition: (v: SidebarPosition) => void;
+  cardStyle: CardStyle;
+  setCardStyle: (v: CardStyle) => void;
+  borderRadius: BorderRadius;
+  setBorderRadius: (v: BorderRadius) => void;
+  compactMode: boolean;
+  setCompactMode: (v: boolean) => void;
 }
 
 const ThemeCtx = createContext<ThemeContext>({
@@ -48,6 +62,11 @@ const ThemeCtx = createContext<ThemeContext>({
   screenReaderHints: false, setScreenReaderHints: () => {},
   largeCursor: false, setLargeCursor: () => {},
   uiStyle: "normal", setUiStyle: () => {},
+  fontFamily: "default", setFontFamily: () => {},
+  sidebarPosition: "left", setSidebarPosition: () => {},
+  cardStyle: "solid", setCardStyle: () => {},
+  borderRadius: "default", setBorderRadius: () => {},
+  compactMode: false, setCompactMode: () => {},
 });
 
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
@@ -63,6 +82,11 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
   const [screenReaderHints, setScreenReaderHintsState] = useState(() => localStorage.getItem("studyai_sr_hints") === "true");
   const [largeCursor, setLargeCursorState] = useState(() => localStorage.getItem("studyai_large_cursor") === "true");
   const [uiStyle, setUiStyleState] = useState<UiStyle>(() => (localStorage.getItem("studyai_ui_style") as UiStyle) || "normal");
+  const [fontFamily, setFontFamilyState] = useState<FontFamily>(() => (localStorage.getItem("studyai_font_family") as FontFamily) || "default");
+  const [sidebarPosition, setSidebarPositionState] = useState<SidebarPosition>(() => (localStorage.getItem("studyai_sidebar_pos") as SidebarPosition) || "left");
+  const [cardStyle, setCardStyleState] = useState<CardStyle>(() => (localStorage.getItem("studyai_card_style") as CardStyle) || "solid");
+  const [borderRadius, setBorderRadiusState] = useState<BorderRadius>(() => (localStorage.getItem("studyai_border_radius") as BorderRadius) || "default");
+  const [compactMode, setCompactModeState] = useState(() => localStorage.getItem("studyai_compact") === "true");
   const [systemDark, setSystemDark] = useState(() => window.matchMedia("(prefers-color-scheme: dark)").matches);
 
   useEffect(() => {
@@ -80,6 +104,10 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
     root.classList.add(resolvedMode);
     root.setAttribute("data-color-theme", colorTheme);
     root.setAttribute("data-ui-style", uiStyle);
+    root.setAttribute("data-font-family", fontFamily);
+    root.setAttribute("data-sidebar-position", sidebarPosition);
+    root.setAttribute("data-card-style", cardStyle);
+    root.setAttribute("data-border-radius", borderRadius);
 
     root.classList.remove("text-size-normal", "text-size-large", "text-size-xl");
     root.classList.add(`text-size-${fontSize}`);
@@ -92,12 +120,17 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
     root.classList.toggle("colorblind-mode", colorBlindMode);
     root.classList.toggle("sr-hints", screenReaderHints);
     root.classList.toggle("large-cursor", largeCursor);
+    root.classList.toggle("compact-mode", compactMode);
     root.classList.toggle("ui-cyberpunk", uiStyle === "cyberpunk");
     root.classList.toggle("ui-retro", uiStyle === "retro");
     root.classList.toggle("ui-glass", uiStyle === "glass");
     root.classList.toggle("ui-minimal", uiStyle === "minimal");
     root.classList.toggle("ui-steampunk", uiStyle === "steampunk");
-  }, [resolvedMode, colorTheme, fontSize, reducedMotion, highContrast, dyslexicFont, lineSpacing, focusHighlight, colorBlindMode, screenReaderHints, largeCursor, uiStyle]);
+    root.classList.toggle("font-mono-custom", fontFamily === "mono");
+    root.classList.toggle("font-serif-custom", fontFamily === "serif");
+    root.classList.toggle("font-orbitron", fontFamily === "orbitron");
+    root.classList.toggle("font-comic", fontFamily === "comic");
+  }, [resolvedMode, colorTheme, fontSize, reducedMotion, highContrast, dyslexicFont, lineSpacing, focusHighlight, colorBlindMode, screenReaderHints, largeCursor, uiStyle, fontFamily, sidebarPosition, cardStyle, borderRadius, compactMode]);
 
   const persist = (key: string, val: string) => localStorage.setItem(key, val);
 
@@ -113,6 +146,11 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
   const setScreenReaderHints = (v: boolean) => { persist("studyai_sr_hints", String(v)); setScreenReaderHintsState(v); };
   const setLargeCursor = (v: boolean) => { persist("studyai_large_cursor", String(v)); setLargeCursorState(v); };
   const setUiStyle = (v: UiStyle) => { persist("studyai_ui_style", v); setUiStyleState(v); };
+  const setFontFamily = (v: FontFamily) => { persist("studyai_font_family", v); setFontFamilyState(v); };
+  const setSidebarPosition = (v: SidebarPosition) => { persist("studyai_sidebar_pos", v); setSidebarPositionState(v); };
+  const setCardStyle = (v: CardStyle) => { persist("studyai_card_style", v); setCardStyleState(v); };
+  const setBorderRadius = (v: BorderRadius) => { persist("studyai_border_radius", v); setBorderRadiusState(v); };
+  const setCompactMode = (v: boolean) => { persist("studyai_compact", String(v)); setCompactModeState(v); };
 
   return (
     <ThemeCtx.Provider value={{
@@ -122,6 +160,9 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
       lineSpacing, setLineSpacing, focusHighlight, setFocusHighlight,
       colorBlindMode, setColorBlindMode, screenReaderHints, setScreenReaderHints,
       largeCursor, setLargeCursor, uiStyle, setUiStyle,
+      fontFamily, setFontFamily, sidebarPosition, setSidebarPosition,
+      cardStyle, setCardStyle, borderRadius, setBorderRadius,
+      compactMode, setCompactMode,
     }}>
       {children}
     </ThemeCtx.Provider>
