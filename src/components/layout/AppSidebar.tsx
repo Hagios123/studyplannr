@@ -64,6 +64,28 @@ const lineSpacingOptions = [
   { value: "relaxed" as const, label: "Relaxed" },
 ];
 
+const fontFamilyOptions = [
+  { value: "default" as const, label: "Sans Serif" },
+  { value: "mono" as const, label: "Monospace" },
+  { value: "serif" as const, label: "Serif" },
+  { value: "orbitron" as const, label: "Orbitron" },
+  { value: "comic" as const, label: "Rounded" },
+];
+
+const cardStyleOptions = [
+  { value: "solid" as const, label: "Solid", icon: Square },
+  { value: "glass" as const, label: "Glass", icon: Layers },
+  { value: "outline" as const, label: "Outline", icon: Square },
+  { value: "neon" as const, label: "Neon", icon: Zap },
+];
+
+const borderRadiusOptions = [
+  { value: "sharp" as const, label: "Sharp" },
+  { value: "default" as const, label: "Default" },
+  { value: "rounded" as const, label: "Rounded" },
+  { value: "pill" as const, label: "Pill" },
+];
+
 export function AppSidebar() {
   const [collapsed, setCollapsed] = useState(false);
   const [settingsOpen, setSettingsOpen] = useState(false);
