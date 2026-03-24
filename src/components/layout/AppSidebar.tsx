@@ -270,6 +270,7 @@ export function AppSidebar() {
               <Tabs defaultValue="appearance" className="mt-2">
                 <TabsList className="w-full">
                   <TabsTrigger value="appearance" className="flex-1 gap-1.5"><Palette className="w-3.5 h-3.5" /> Theme</TabsTrigger>
+                  <TabsTrigger value="layout" className="flex-1 gap-1.5"><Layers className="w-3.5 h-3.5" /> Layout</TabsTrigger>
                   <TabsTrigger value="sounds" className="flex-1 gap-1.5"><Music className="w-3.5 h-3.5" /> Sounds</TabsTrigger>
                   <TabsTrigger value="accessibility" className="flex-1 gap-1.5"><Accessibility className="w-3.5 h-3.5" /> Access</TabsTrigger>
                 </TabsList>
@@ -304,6 +305,53 @@ export function AppSidebar() {
                         </button>
                       ))}
                     </div>
+                  </div>
+                  <div className="space-y-3">
+                    <label className="text-sm font-semibold flex items-center gap-2"><Type className="w-4 h-4 text-muted-foreground" /> Font Family</label>
+                    <div className="grid grid-cols-3 gap-2">
+                      {fontFamilyOptions.map((opt) => (
+                        <button key={opt.value} onClick={() => setFontFamily(opt.value)} className={cn("p-3 rounded-xl border text-xs font-medium transition-all", fontFamily === opt.value ? "border-primary bg-primary/10 text-primary" : "border-border bg-secondary/50 text-muted-foreground hover:border-primary/30")}>
+                          {opt.label}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                </TabsContent>
+
+                <TabsContent value="layout" className="space-y-6 pt-2">
+                  <div className="space-y-3">
+                    <label className="text-sm font-semibold flex items-center gap-2"><PanelLeft className="w-4 h-4 text-muted-foreground" /> Sidebar Position</label>
+                    <div className="grid grid-cols-2 gap-2">
+                      <button onClick={() => setSidebarPosition("left")} className={cn("flex items-center justify-center gap-2 p-3 rounded-xl border text-xs font-medium transition-all", sidebarPosition === "left" ? "border-primary bg-primary/10 text-primary" : "border-border bg-secondary/50 text-muted-foreground hover:border-primary/30")}>
+                        <PanelLeft className="w-4 h-4" /> Left
+                      </button>
+                      <button onClick={() => setSidebarPosition("right")} className={cn("flex items-center justify-center gap-2 p-3 rounded-xl border text-xs font-medium transition-all", sidebarPosition === "right" ? "border-primary bg-primary/10 text-primary" : "border-border bg-secondary/50 text-muted-foreground hover:border-primary/30")}>
+                        <PanelRight className="w-4 h-4" /> Right
+                      </button>
+                    </div>
+                  </div>
+                  <div className="space-y-3">
+                    <label className="text-sm font-semibold flex items-center gap-2"><Square className="w-4 h-4 text-muted-foreground" /> Card Style</label>
+                    <div className="grid grid-cols-2 gap-2">
+                      {cardStyleOptions.map((opt) => (
+                        <button key={opt.value} onClick={() => setCardStyle(opt.value)} className={cn("flex items-center justify-center gap-2 p-3 rounded-xl border text-xs font-medium transition-all", cardStyle === opt.value ? "border-primary bg-primary/10 text-primary" : "border-border bg-secondary/50 text-muted-foreground hover:border-primary/30")}>
+                          <opt.icon className="w-4 h-4" /> {opt.label}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                  <div className="space-y-3">
+                    <label className="text-sm font-semibold flex items-center gap-2"><Circle className="w-4 h-4 text-muted-foreground" /> Border Radius</label>
+                    <div className="grid grid-cols-4 gap-2">
+                      {borderRadiusOptions.map((opt) => (
+                        <button key={opt.value} onClick={() => setBorderRadius(opt.value)} className={cn("p-3 border text-xs font-medium transition-all", borderRadius === opt.value ? "border-primary bg-primary/10 text-primary" : "border-border bg-secondary/50 text-muted-foreground hover:border-primary/30", opt.value === "sharp" ? "rounded-none" : opt.value === "default" ? "rounded-lg" : opt.value === "rounded" ? "rounded-2xl" : "rounded-full")}>
+                          {opt.label}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                  <div className="space-y-2">
+                    <ToggleRow icon={Minimize2} label="Compact Mode" description="Tighter spacing everywhere" checked={compactMode} onChange={setCompactMode} />
                   </div>
                 </TabsContent>
 
