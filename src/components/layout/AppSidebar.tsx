@@ -7,7 +7,8 @@ import {
   Library, Users, UserPlus, User, MessageCircle, MousePointer,
   AlignJustify, Focus, Glasses, Cpu, Paintbrush, GraduationCap,
   Music, Volume2, VolumeX, Upload, Trash2, Loader2,
-  Shield, ClipboardCheck, FileText,
+  Shield, ClipboardCheck, FileText, PanelLeft, PanelRight,
+  Square, Circle, RectangleHorizontal, Minimize2, Layers,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useTheme } from "@/hooks/useTheme";
