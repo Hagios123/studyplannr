@@ -1356,3 +1356,280 @@
   opacity: 0.3;
   animation: steam-rise 3s ease-in-out infinite;
 }
+
+/* ========================================
+   AERO UI STYLE
+   Windows Vista/7 Aero glass effect
+   ======================================== */
+.ui-aero {
+  --aero-glass: 220 60% 95%;
+  --aero-accent: 210 80% 55%;
+  --aero-shine: 210 100% 80%;
+}
+.ui-aero body {
+  background: linear-gradient(135deg, hsl(210 40% 92%), hsl(200 50% 88%), hsl(220 45% 90%)) !important;
+}
+.dark.ui-aero body {
+  background: linear-gradient(135deg, hsl(220 25% 12%), hsl(210 30% 16%), hsl(225 25% 14%)) !important;
+}
+.ui-aero .bg-card, .ui-aero .bg-sidebar, .ui-aero aside {
+  background: hsl(var(--aero-glass) / 0.55) !important;
+  backdrop-filter: blur(20px) saturate(1.4);
+  border: 1px solid hsl(0 0% 100% / 0.5) !important;
+  box-shadow: 0 2px 12px hsl(210 50% 50% / 0.08), inset 0 1px 0 hsl(0 0% 100% / 0.4);
+}
+.dark.ui-aero .bg-card, .dark.ui-aero .bg-sidebar, .dark.ui-aero aside {
+  background: hsl(220 25% 18% / 0.65) !important;
+  border: 1px solid hsl(0 0% 100% / 0.08) !important;
+  box-shadow: 0 2px 12px hsl(0 0% 0% / 0.3), inset 0 1px 0 hsl(0 0% 100% / 0.05);
+}
+.ui-aero button:hover {
+  background: hsl(var(--aero-accent) / 0.1) !important;
+}
+.ui-aero [role="dialog"] {
+  backdrop-filter: blur(24px) saturate(1.5);
+  background: hsl(var(--aero-glass) / 0.7) !important;
+  border: 1px solid hsl(0 0% 100% / 0.5) !important;
+  box-shadow: 0 8px 32px hsl(210 40% 30% / 0.15) !important;
+}
+.dark.ui-aero [role="dialog"] {
+  background: hsl(220 25% 16% / 0.8) !important;
+  border: 1px solid hsl(0 0% 100% / 0.1) !important;
+}
+.ui-aero ::-webkit-scrollbar { width: 10px; }
+.ui-aero ::-webkit-scrollbar-track { background: hsl(210 20% 90%); }
+.ui-aero ::-webkit-scrollbar-thumb { background: hsl(var(--aero-accent) / 0.3); border-radius: 5px; }
+
+/* ========================================
+   NORD UI STYLE
+   Arctic, calm color palette
+   ======================================== */
+.ui-nord {
+  --nord-polar0: 220 16% 22%;
+  --nord-polar1: 222 16% 28%;
+  --nord-polar2: 220 17% 32%;
+  --nord-polar3: 220 16% 36%;
+  --nord-snow0: 219 28% 88%;
+  --nord-snow1: 218 27% 92%;
+  --nord-snow2: 218 27% 94%;
+  --nord-frost0: 179 25% 65%;
+  --nord-frost1: 193 43% 67%;
+  --nord-frost2: 210 34% 63%;
+  --nord-frost3: 213 32% 52%;
+  --nord-aurora-red: 354 42% 56%;
+  --nord-aurora-orange: 14 51% 63%;
+  --nord-aurora-yellow: 40 71% 73%;
+  --nord-aurora-green: 92 28% 65%;
+  --nord-aurora-purple: 311 20% 63%;
+}
+.ui-nord body {
+  background: hsl(var(--nord-polar0)) !important;
+  color: hsl(var(--nord-snow0)) !important;
+}
+.ui-nord .bg-card, .ui-nord aside, .ui-nord .bg-sidebar {
+  background: hsl(var(--nord-polar1)) !important;
+  border-color: hsl(var(--nord-polar3) / 0.5) !important;
+}
+.ui-nord .text-primary, .ui-nord [class*="text-primary"] {
+  color: hsl(var(--nord-frost1)) !important;
+}
+.ui-nord .bg-primary {
+  background: hsl(var(--nord-frost3)) !important;
+}
+.ui-nord .text-muted-foreground {
+  color: hsl(var(--nord-snow0) / 0.6) !important;
+}
+.ui-nord .border-border, .ui-nord [class*="border-border"] {
+  border-color: hsl(var(--nord-polar3) / 0.4) !important;
+}
+.ui-nord input, .ui-nord textarea {
+  background: hsl(var(--nord-polar0)) !important;
+  border-color: hsl(var(--nord-polar3)) !important;
+  color: hsl(var(--nord-snow0)) !important;
+}
+.ui-nord ::-webkit-scrollbar { width: 6px; }
+.ui-nord ::-webkit-scrollbar-track { background: hsl(var(--nord-polar0)); }
+.ui-nord ::-webkit-scrollbar-thumb { background: hsl(var(--nord-polar3)); border-radius: 3px; }
+
+/* ========================================
+   DRACULA UI STYLE
+   Dark purple-tinted theme
+   ======================================== */
+.ui-dracula {
+  --drac-bg: 231 15% 18%;
+  --drac-current: 232 14% 31%;
+  --drac-fg: 60 30% 96%;
+  --drac-comment: 225 27% 51%;
+  --drac-cyan: 191 97% 77%;
+  --drac-green: 135 94% 65%;
+  --drac-orange: 31 100% 71%;
+  --drac-pink: 326 100% 74%;
+  --drac-purple: 265 89% 78%;
+  --drac-red: 0 100% 67%;
+  --drac-yellow: 65 92% 76%;
+}
+.ui-dracula body {
+  background: hsl(var(--drac-bg)) !important;
+  color: hsl(var(--drac-fg)) !important;
+}
+.ui-dracula .bg-card, .ui-dracula aside, .ui-dracula .bg-sidebar {
+  background: hsl(var(--drac-current)) !important;
+  border-color: hsl(var(--drac-purple) / 0.2) !important;
+}
+.ui-dracula .text-primary, .ui-dracula [class*="text-primary"] {
+  color: hsl(var(--drac-purple)) !important;
+}
+.ui-dracula .bg-primary {
+  background: hsl(var(--drac-purple)) !important;
+  color: hsl(var(--drac-bg)) !important;
+}
+.ui-dracula .text-muted-foreground {
+  color: hsl(var(--drac-comment)) !important;
+}
+.ui-dracula .border-border {
+  border-color: hsl(var(--drac-purple) / 0.15) !important;
+}
+.ui-dracula a:hover, .ui-dracula button:hover {
+  color: hsl(var(--drac-pink));
+}
+.ui-dracula input, .ui-dracula textarea {
+  background: hsl(var(--drac-bg)) !important;
+  border-color: hsl(var(--drac-purple) / 0.3) !important;
+  color: hsl(var(--drac-fg)) !important;
+}
+.ui-dracula input:focus, .ui-dracula textarea:focus {
+  border-color: hsl(var(--drac-purple) / 0.6) !important;
+  box-shadow: 0 0 8px hsl(var(--drac-purple) / 0.15) !important;
+}
+.ui-dracula ::-webkit-scrollbar { width: 8px; }
+.ui-dracula ::-webkit-scrollbar-track { background: hsl(var(--drac-bg)); }
+.ui-dracula ::-webkit-scrollbar-thumb { background: hsl(var(--drac-purple) / 0.3); border-radius: 4px; }
+
+/* ========================================
+   SOLARIZED UI STYLE
+   Warm, eye-friendly palette
+   ======================================== */
+.ui-solarized {
+  --sol-base03: 192 100% 11%;
+  --sol-base02: 192 81% 14%;
+  --sol-base01: 194 25% 46%;
+  --sol-base00: 196 13% 45%;
+  --sol-base0: 186 8% 55%;
+  --sol-base1: 180 7% 60%;
+  --sol-base2: 44 87% 94%;
+  --sol-base3: 44 100% 98%;
+  --sol-yellow: 45 100% 35%;
+  --sol-orange: 18 89% 45%;
+  --sol-red: 1 71% 52%;
+  --sol-magenta: 331 64% 52%;
+  --sol-violet: 237 45% 77%;
+  --sol-blue: 205 69% 49%;
+  --sol-cyan: 175 59% 40%;
+  --sol-green: 68 100% 30%;
+}
+.ui-solarized body {
+  background: hsl(var(--sol-base3)) !important;
+  color: hsl(var(--sol-base00)) !important;
+}
+.dark.ui-solarized body {
+  background: hsl(var(--sol-base03)) !important;
+  color: hsl(var(--sol-base0)) !important;
+}
+.ui-solarized .bg-card, .ui-solarized aside, .ui-solarized .bg-sidebar {
+  background: hsl(var(--sol-base2)) !important;
+  border-color: hsl(var(--sol-base1) / 0.2) !important;
+}
+.dark.ui-solarized .bg-card, .dark.ui-solarized aside, .dark.ui-solarized .bg-sidebar {
+  background: hsl(var(--sol-base02)) !important;
+  border-color: hsl(var(--sol-base01) / 0.2) !important;
+}
+.ui-solarized .text-primary { color: hsl(var(--sol-blue)) !important; }
+.ui-solarized .bg-primary { background: hsl(var(--sol-blue)) !important; }
+.dark.ui-solarized .text-muted-foreground { color: hsl(var(--sol-base01)) !important; }
+.ui-solarized input, .ui-solarized textarea {
+  background: hsl(var(--sol-base3)) !important;
+  border-color: hsl(var(--sol-base1) / 0.3) !important;
+}
+.dark.ui-solarized input, .dark.ui-solarized textarea {
+  background: hsl(var(--sol-base03)) !important;
+  border-color: hsl(var(--sol-base01) / 0.3) !important;
+  color: hsl(var(--sol-base0)) !important;
+}
+
+/* ========================================
+   SYNTHWAVE UI STYLE
+   Retro 80s neon aesthetic
+   ======================================== */
+.ui-synthwave {
+  --synth-bg: 260 30% 8%;
+  --synth-surface: 260 25% 14%;
+  --synth-pink: 330 100% 65%;
+  --synth-cyan: 180 100% 60%;
+  --synth-yellow: 50 100% 65%;
+  --synth-purple: 280 100% 70%;
+  --synth-blue: 220 100% 65%;
+  --synth-fg: 280 20% 90%;
+}
+.ui-synthwave body {
+  background: linear-gradient(180deg, hsl(var(--synth-bg)), hsl(280 30% 6%)) !important;
+  color: hsl(var(--synth-fg)) !important;
+}
+.ui-synthwave .bg-card, .ui-synthwave aside, .ui-synthwave .bg-sidebar {
+  background: hsl(var(--synth-surface)) !important;
+  border: 1px solid hsl(var(--synth-pink) / 0.15) !important;
+  box-shadow: 0 0 15px hsl(var(--synth-pink) / 0.05), inset 0 0 15px hsl(var(--synth-purple) / 0.03);
+}
+.ui-synthwave .text-primary, .ui-synthwave [class*="text-primary"] {
+  color: hsl(var(--synth-pink)) !important;
+  text-shadow: 0 0 8px hsl(var(--synth-pink) / 0.4);
+}
+.ui-synthwave .bg-primary {
+  background: linear-gradient(135deg, hsl(var(--synth-pink)), hsl(var(--synth-purple))) !important;
+  box-shadow: 0 0 12px hsl(var(--synth-pink) / 0.4);
+}
+.ui-synthwave .text-muted-foreground {
+  color: hsl(var(--synth-fg) / 0.5) !important;
+}
+.ui-synthwave h1, .ui-synthwave h2, .ui-synthwave h3 {
+  background: linear-gradient(90deg, hsl(var(--synth-pink)), hsl(var(--synth-cyan)), hsl(var(--synth-purple)));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  text-shadow: none;
+}
+.ui-synthwave input, .ui-synthwave textarea {
+  background: hsl(var(--synth-bg)) !important;
+  border-color: hsl(var(--synth-cyan) / 0.2) !important;
+  color: hsl(var(--synth-fg)) !important;
+}
+.ui-synthwave input:focus, .ui-synthwave textarea:focus {
+  border-color: hsl(var(--synth-cyan) / 0.5) !important;
+  box-shadow: 0 0 12px hsl(var(--synth-cyan) / 0.15) !important;
+}
+.ui-synthwave [role="dialog"] {
+  background: hsl(var(--synth-surface)) !important;
+  border: 1px solid hsl(var(--synth-pink) / 0.3) !important;
+  box-shadow: 0 0 40px hsl(var(--synth-pink) / 0.1), 0 0 80px hsl(var(--synth-purple) / 0.05) !important;
+}
+.ui-synthwave ::-webkit-scrollbar { width: 6px; }
+.ui-synthwave ::-webkit-scrollbar-track { background: hsl(var(--synth-bg)); }
+.ui-synthwave ::-webkit-scrollbar-thumb {
+  background: linear-gradient(180deg, hsl(var(--synth-pink) / 0.4), hsl(var(--synth-purple) / 0.4));
+  border-radius: 3px;
+}
+@keyframes synth-grid {
+  from { background-position: 0 0; }
+  to { background-position: 0 40px; }
+}
+.ui-synthwave body::after {
+  content: "";
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+  background-image:
+    linear-gradient(hsl(var(--synth-pink) / 0.03) 1px, transparent 1px),
+    linear-gradient(90deg, hsl(var(--synth-pink) / 0.03) 1px, transparent 1px);
+  background-size: 40px 40px;
+  animation: synth-grid 4s linear infinite;
+}
