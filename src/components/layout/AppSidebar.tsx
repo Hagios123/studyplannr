@@ -75,6 +75,9 @@ export function AppSidebar() {
     lineSpacing, setLineSpacing, focusHighlight, setFocusHighlight,
     colorBlindMode, setColorBlindMode, screenReaderHints, setScreenReaderHints,
     largeCursor, setLargeCursor, uiStyle, setUiStyle,
+    fontFamily, setFontFamily, sidebarPosition, setSidebarPosition,
+    cardStyle, setCardStyle, borderRadius, setBorderRadius,
+    compactMode, setCompactMode,
   } = useTheme();
 
   const [playing, setPlaying] = useState<string | null>(null);
