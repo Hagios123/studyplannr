@@ -50,6 +50,11 @@ const uiStyleOptions = [
   { value: "glass" as const, icon: Eye, label: "Glass" },
   { value: "minimal" as const, icon: Type, label: "Minimal" },
   { value: "steampunk" as const, icon: Settings, label: "Steampunk" },
+  { value: "aero" as const, icon: Layers, label: "Aero" },
+  { value: "nord" as const, icon: Square, label: "Nord" },
+  { value: "dracula" as const, icon: Moon, label: "Dracula" },
+  { value: "solarized" as const, icon: Sun, label: "Solarized" },
+  { value: "synthwave" as const, icon: Zap, label: "Synthwave" },
 ];
 
 const fontSizeOptions = [
