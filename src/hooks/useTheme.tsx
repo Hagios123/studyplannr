@@ -126,6 +126,11 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
     root.classList.toggle("ui-glass", uiStyle === "glass");
     root.classList.toggle("ui-minimal", uiStyle === "minimal");
     root.classList.toggle("ui-steampunk", uiStyle === "steampunk");
+    root.classList.toggle("ui-aero", uiStyle === "aero");
+    root.classList.toggle("ui-nord", uiStyle === "nord");
+    root.classList.toggle("ui-dracula", uiStyle === "dracula");
+    root.classList.toggle("ui-solarized", uiStyle === "solarized");
+    root.classList.toggle("ui-synthwave", uiStyle === "synthwave");
     root.classList.toggle("font-mono-custom", fontFamily === "mono");
     root.classList.toggle("font-serif-custom", fontFamily === "serif");
     root.classList.toggle("font-orbitron", fontFamily === "orbitron");
